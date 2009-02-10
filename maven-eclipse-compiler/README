@@ -1,0 +1,56 @@
+This module is a Maven compiler which uses the Eclipse Java compiler which is 
+used by the Tuscany SCA project build.
+
+To build, from the top maven-eclipse-compiler run maven:
+
+mvn
+
+or once all the dependencies have been downloaded and a succesful build run use:
+
+mvn clean install -o
+
+So as to avoid the Tuscany SCA project using SNAPSHOT dependencies any changes
+to this maven-eclipse-compiler module should be released and the Tuscany SCA
+project updated to use the newly released version.
+
+To release this module:
+
+mvn release:prepare
+
+followed by: 
+
+mvn release:perform
+
+While running these will prompt you for the names fro the tag, release version etc.
+
+In your maven settings.xml file you must have a server defined named "apache.releases",
+and a profile named "release". For example:
+
+  <servers>
+    ...
+    <server>
+      <id>apache.releases</id>
+      <username>antelder</username>
+      <privateKey>\ant\id_dsa</privateKey>
+      <passphrase>xxx</passphrase>
+      <directoryPermissions>775</directoryPermissions>
+      <filePermissions>664</filePermissions>
+    </server>
+  </servers>
+
+  <profiles>
+    ...
+    <profile>
+      <id>release</id>
+      <properties>
+        <gpg.passphrase>...</gpg.passphrase>
+        <deploy.altRepository>apache.releases::default::scp://people.apache.org/home/antelder/public_html/tuscany/maven-eclipse-compiler-1.0</deploy.altRepository>
+      </properties>
+    </profile>
+  </profiles>
+
+
+ 
+
+
+ 
