@@ -29,7 +29,7 @@
     <artifactId>maven-eclipse-compiler</artifactId>
     <packaging>jar</packaging>
     <name>Apache Tuscany Maven Eclipse Compiler Plugin</name>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>
 
     <scm>
         <connection>scm:svn:http://svn.apache.org/repos/asf/tuscany/maven-plugins/trunk/maven-eclipse-plugin</connection>
