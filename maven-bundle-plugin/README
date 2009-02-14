@@ -17,7 +17,11 @@ the newly released version.
 
 To release this module:
 
-mvn release:prepare,perform
+mvn release:prepare
+
+followed by: 
+
+mvn release:perform
 
 That will automatically create an SVN tag from the release, update the version 
 numbers in the pom.xml files in the trunk and tag, and deploy the artifacts to the
