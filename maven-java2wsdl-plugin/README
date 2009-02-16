@@ -1,0 +1,66 @@
+A Maven plugin used by the Tuscany project that can create a WSDL document from
+a Java interface which using SCA annotations.
+
+To build, from the top maven-bundle-plugin run maven:
+
+mvn
+
+or once all the dependencies have been downloaded and a succesful build run use:
+
+mvn clean install -o
+
+So as to avoid the Tuscany SCA project using SNAPSHOT dependencies any changes
+to this module should be released and the Tuscany SCA project updated to use 
+the newly released version.
+
+To release this module:
+
+mvn release:prepare
+
+followed by: 
+
+mvn release:perform
+
+That will automatically create an SVN tag from the release, update the version 
+numbers in the pom.xml files in the trunk and tag, and deploy the artifacts to the
+staging repository defined by the <deploy.altRepository> in your Maven settings.xml.
+While running it will prompt you for the names for the tag, release version etc.
+
+In your maven settings.xml file you must have a server defined named "apache.releases",
+and a profile named "release". For example:
+
+  <servers>
+    ...
+    <server>
+      <id>apache.releases</id>
+      <username>antelder</username>
+      <privateKey>\ant\id_dsa</privateKey>
+      <passphrase>xxx</passphrase>
+      <directoryPermissions>775</directoryPermissions>
+      <filePermissions>664</filePermissions>
+    </server>
+  </servers>
+
+  <profiles>
+    ...
+    <profile>
+      <id>release</id>
+      <properties>
+        <gpg.passphrase>...</gpg.passphrase>
+        <deploy.altRepository>apache.releases::default::scp://people.apache.org/home/antelder/public_html/tuscany/maven-java2wsdl-plugin-1.0</deploy.altRepository>
+      </properties>
+    </profile>
+  </profiles>
+
+Call a vote to release the module, eg: http://apache.markmail.org/message/6jnlfxbx7uklt5nv
+
+After a successful vote copy the staging artifacts to the live repository, eg: 
+
+cp -p -v -R  maven-bundle-plugin-1.0/org/apache/tuscany/maven/plugins/ /x1/www/people.apache.org/repo/m2-ibiblio-rsync-repository/org/apache/tuscany/maven/plugins
+
+
+
+ 
+
+
+ 
