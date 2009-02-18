@@ -28,6 +28,10 @@ numbers in the pom.xml files in the trunk and tag, and deploy the artifacts to t
 staging repository defined by the <deploy.altRepository> in your Maven settings.xml.
 While running it will prompt you for the names for the tag, release version etc.
 
+Note: there seem to be issues with having empty folders in the src tree which causes
+      release:prepare to fail, not sure why but deleting the empty folder fixes the
+      problem. You can do "mvn release:rollback" to undo a failed release.
+
 In your maven settings.xml file you must have a server defined named "apache.releases",
 and a profile named "release". For example:
 
