@@ -194,16 +194,18 @@
         </dependency>        
 
         <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>maven-bundle-plugin</artifactId>
-            <version>1.4.3</version>
-        </dependency>   
-        
-        <dependency>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-eclipse-plugin</artifactId>
             <version>2.5.1</version>
         </dependency>
+        
+        <dependency>
+            <groupId>org.eclipse</groupId>
+            <artifactId>osgi</artifactId>
+            <version>3.3.0-v20070530</version>
+            <scope>compile</scope>
+        </dependency>
+                
     </dependencies>
 
     <build>
