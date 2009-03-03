@@ -43,7 +43,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.apache.maven.artifact.versioning.ArtifactVersion;
-import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.osgi.framework.Version;
 
 /**
@@ -386,7 +385,7 @@ final class BundleUtil {
      * @return
      */
     static String osgiVersion(String mavenVersion) {
-        ArtifactVersion ver = new DefaultArtifactVersion(mavenVersion);
+        ArtifactVersion ver = new OSGIArtifactVersion(mavenVersion);
         String qualifer = ver.getQualifier();
         if (qualifer != null) {
             StringBuffer buf = new StringBuffer(qualifer);
