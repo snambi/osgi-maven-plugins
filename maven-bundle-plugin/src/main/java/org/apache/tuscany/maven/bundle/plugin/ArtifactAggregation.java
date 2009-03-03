@@ -27,7 +27,7 @@ import org.apache.maven.artifact.Artifact;
 public class ArtifactAggregation {
     private String symbolicName;
     private String version;
-    private List<ArtifactMember> artifactMemebers = new ArrayList<ArtifactMember>();
+    private List<ArtifactMember> artifactMembers = new ArrayList<ArtifactMember>();
     private transient List<Artifact> artifacts = new ArrayList<Artifact>();
 
     public List<Artifact> getArtifacts() {
@@ -51,19 +51,19 @@ public class ArtifactAggregation {
     }
 
     public List<ArtifactMember> getArtifactMembers() {
-        return artifactMemebers;
+        return artifactMembers;
     }
 
     public void setArtifactMembers(List<ArtifactMember> artifacts) {
-        this.artifactMemebers = artifacts;
+        this.artifactMembers = artifacts;
     }
 
     public String toString() {
-        return symbolicName + ";version=\"" + version + "\"\n" + artifactMemebers;
+        return symbolicName + ";version=\"" + version + "\"\n" + artifactMembers;
     }
     
     public boolean matches(Artifact artifact) {
-        for(ArtifactMember m: artifactMemebers) {
+        for(ArtifactMember m: artifactMembers) {
             if(m.matches(artifact)) {
                 return true;
             }
