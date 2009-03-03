@@ -232,6 +232,12 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
      */
     private ArtifactAggregation[] artifactAggregations;
     
+    /**
+     * Inserts a generic Eclipse-BuddyPolicy header into generated artifacts manifests
+     * @parameter default-value="dependent"
+     */
+    private String genericBuddyPolicy = "dependent";
+    
     private static final String XML_PI = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
     private static final String ASL_HEADER =
             "<!--"
@@ -462,7 +468,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                     Set<File> jarFiles = new HashSet<File>();
                     jarFiles.add(artifactFile);
                     String symbolicName = (artifact.getGroupId() + "." + artifact.getArtifactId());
-                    Manifest mf = BundleUtil.libraryManifest(jarFiles, symbolicName, symbolicName, version, null);
+                    Manifest mf = BundleUtil.libraryManifest(jarFiles, symbolicName, symbolicName, version, null, this.genericBuddyPolicy);
                     File file = new File(dir, "META-INF");
                     file.mkdirs();
                     file = new File(file, "MANIFEST.MF");
@@ -495,7 +501,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                         copyFile(a.getFile(), dir);
                         jarNames.add(a, symbolicName + "-" + version + "/" + a.getFile().getName());
                     }
-                    Manifest mf = BundleUtil.libraryManifest(jarFiles, symbolicName, symbolicName, version, null);
+                    Manifest mf = BundleUtil.libraryManifest(jarFiles, symbolicName, symbolicName, version, null, this.genericBuddyPolicy);
                     File file = new File(dir, "META-INF");
                     file.mkdirs();
                     file = new File(file, "MANIFEST.MF");

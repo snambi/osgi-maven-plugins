@@ -101,6 +101,22 @@ final class BundleUtil {
      * @throws IllegalStateException
      */
     static Manifest libraryManifest(Set<File> jarFiles, String name, String symbolicName, String version, String dir)
+    throws IllegalStateException {
+    	return libraryManifest(jarFiles, name, symbolicName, version, dir, null);
+    }
+    /**
+     * Generate a Bundle manifest for a set of JAR files.
+     * 
+     * @param jarFiles
+     * @param name
+     * @param symbolicName
+     * @param version
+     * @param dir 
+     * @param buddyPolicy 
+     * @return
+     * @throws IllegalStateException
+     */
+    static Manifest libraryManifest(Set<File> jarFiles, String name, String symbolicName, String version, String dir, String buddyPolicy)
         throws IllegalStateException {
         try {
 
@@ -143,6 +159,9 @@ final class BundleUtil {
             attributes.putValue(BUNDLE_NAME, name);
             attributes.putValue(BUNDLE_VERSION, version);
             attributes.putValue(DYNAMICIMPORT_PACKAGE, "*");
+            if (buddyPolicy != null && buddyPolicy.length() > 0){
+            	attributes.putValue("Eclipse-BuddyPolicy", buddyPolicy);
+            }
             if (exports.length() > 1) {
                 attributes.putValue(EXPORT_PACKAGE, exports.substring(0, exports.length() - 1));
             }
@@ -178,6 +197,7 @@ final class BundleUtil {
         write(attributes, BUNDLE_CLASSPATH, dos);
         write(attributes, IMPORT_PACKAGE, dos);
         write(attributes, EXPORT_PACKAGE, dos);
+        write(attributes, "Eclipse-BuddyPolicy", dos);
         dos.flush();
     }
 
