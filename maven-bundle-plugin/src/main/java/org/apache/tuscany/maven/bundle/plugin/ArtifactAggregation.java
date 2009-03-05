@@ -23,7 +23,6 @@ import java.util.List;
 
 import org.apache.maven.artifact.Artifact;
 
-
 public class ArtifactAggregation {
     private String symbolicName;
     private String version;
