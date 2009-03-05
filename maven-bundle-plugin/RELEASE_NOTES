@@ -1,0 +1,15 @@
+Apache Tuscany Maven Bundle Plugin 1.0.1 Release Notes
+======================================================
+
+TUSCANY-2877:  Introducing a generic Eclipse-BuddyPolicy header for the bundles generated from dependent artifacts would be helpful
+TUSCANY-2876:  In artifact aggrations, artifactMemebers is misspelled and may lead to error prone configurations
+TUSCANY-2873:  Wrapping of non-OSGi components creates versions that may makes no-sense
+TUSCANY-2872:  Maven Bundle Plugin throws NPE when a dependent non-OSGI jar has no manifest
+r747530:       Use the equinox as the osgi dependency
+
+
+
+Apache Tuscany Maven Bundle Plugin 1.0 Release Notes
+====================================================
+
+Initial release
