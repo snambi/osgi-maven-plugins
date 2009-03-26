@@ -6,15 +6,15 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
- * under the License.    
+ * under the License.
  */
 
 package org.apache.tuscany.maven.compiler.osgi;
@@ -50,7 +50,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.apache.maven.artifact.versioning.ArtifactVersion;
-import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.eclipse.osgi.framework.internal.core.Constants;
 import org.eclipse.osgi.framework.internal.core.FrameworkProperties;
 import org.eclipse.osgi.util.ManifestElement;
@@ -65,7 +64,7 @@ public final class BundleUtil {
 
     /**
      * Returns the name of a bundle, or null if the given file is not a bundle.
-     *  
+     *
      * @param file
      * @return
      * @throws IOException
@@ -129,19 +128,19 @@ public final class BundleUtil {
             Set<File> jars = new HashSet<File>();
             jars.add(file);
             String name = file.getName();
-            manifest = libraryManifest(jars, name, name, jarVersion(name), null);
+            manifest = libraryManifest(jars, name, name, getOSGiVersion(name), null);
         }
         return manifest;
     }
 
     /**
      * Generate a Bundle manifest for a set of JAR files.
-     * 
+     *
      * @param jarFiles
      * @param name
      * @param symbolicName
      * @param version
-     * @param dir 
+     * @param dir
      * @return
      * @throws IllegalStateException
      */
@@ -211,7 +210,7 @@ public final class BundleUtil {
 
     /**
      * Write a bundle manifest.
-     * 
+     *
      * @param manifest
      * @param out
      * @throws IOException
@@ -233,7 +232,7 @@ public final class BundleUtil {
 
     /**
      * Add packages to be exported out of a JAR file.
-     * 
+     *
      * @param jarFile
      * @param packages
      * @throws IOException
@@ -249,7 +248,7 @@ public final class BundleUtil {
 
     /**
      * Write manifest attributes.
-     * 
+     *
      * @param attributes
      * @param key
      * @param dos
@@ -278,7 +277,7 @@ public final class BundleUtil {
 
     /**
      * Strip an OSGi export, only retain the package name and version.
-     * 
+     *
      * @param export
      * @return
      */
@@ -303,7 +302,7 @@ public final class BundleUtil {
 
     /**
      * Add all the packages out of a JAR.
-     * 
+     *
      * @param jarFile
      * @param packages
      * @param version
@@ -344,7 +343,7 @@ public final class BundleUtil {
 
     /**
      * Add the packages exported by a bundle.
-     *  
+     *
      * @param file
      * @param packages
      * @return
@@ -409,43 +408,44 @@ public final class BundleUtil {
             }
         }
     }
-    
+
     /**
      * starting with -, then some digits, then . or - or _, then some digits again
-     * 
+     *
      */
     private static Pattern pattern = Pattern.compile("-(\\d)+((\\.|-|_)(\\d)+)*");
 
     /**
      * Returns the version number to use for the given JAR file.
-     *   
+     *
      * @param fileName
      * @return
      */
-    static String jarVersion(String fileName) {
+    static String getOSGiVersion(String fileName) {
         String name = fileName;
         int index = name.lastIndexOf('.');
         if (index != -1) {
             // Trim the extension
             name = name.substring(0, index);
         }
-        
+
         Matcher matcher = pattern.matcher(name);
         String version = "0.0.0";
         if (matcher.find()) {
             version = matcher.group();
             version = version.substring(1);
+
         }
-        return version;
+        return osgiVersion(version);
     }
 
     /**
-     * Convert the maven version into OSGi version 
+     * Convert the maven version into OSGi version
      * @param mavenVersion
      * @return
      */
     static String osgiVersion(String mavenVersion) {
-        ArtifactVersion ver = new DefaultArtifactVersion(mavenVersion);
+        ArtifactVersion ver = new OSGIArtifactVersion(mavenVersion);
         String qualifer = ver.getQualifier();
         if (qualifer != null) {
             StringBuffer buf = new StringBuffer(qualifer);
@@ -464,10 +464,10 @@ public final class BundleUtil {
         String version = osgiVersion.toString();
         return version;
     }
-    
-    private static String J2SE = "J2SE-"; 
-    private static String JAVASE = "JavaSE-"; 
-    private static String PROFILE_EXT = ".profile"; 
+
+    private static String J2SE = "J2SE-";
+    private static String JAVASE = "JavaSE-";
+    private static String PROFILE_EXT = ".profile";
 
     public static void loadVMProfile(Properties properties) {
         Properties profileProps = findVMProfile(properties);
@@ -510,26 +510,26 @@ public final class BundleUtil {
         if (j2meConfig != null && j2meConfig.length() > 0 && j2meProfiles != null && j2meProfiles.length() > 0) {
             // save the vmProfile based off of the config and profile
             // use the last profile; assuming that is the highest one
-            String[] j2meProfileList = ManifestElement.getArrayFromList(j2meProfiles, " "); 
+            String[] j2meProfileList = ManifestElement.getArrayFromList(j2meProfiles, " ");
             if (j2meProfileList != null && j2meProfileList.length > 0)
                 vmProfile = j2meConfig + '_' + j2meProfileList[j2meProfileList.length - 1];
         } else {
             // No J2ME properties; use J2SE properties
             // Note that the CDC spec appears not to require VM implementations to set the
-            // javax.microedition properties!!  So we will try to fall back to the 
+            // javax.microedition properties!!  So we will try to fall back to the
             // java.specification.name property, but this is pretty ridiculous!!
-            String javaSpecVersion = properties.getProperty("java.specification.version"); 
+            String javaSpecVersion = properties.getProperty("java.specification.version");
             // set the profile and EE based off of the java.specification.version
             // TODO We assume J2ME Foundation and J2SE here.  need to support other profiles J2EE ...
             if (javaSpecVersion != null) {
-                StringTokenizer st = new StringTokenizer(javaSpecVersion, " _-"); 
+                StringTokenizer st = new StringTokenizer(javaSpecVersion, " _-");
                 javaSpecVersion = st.nextToken();
-                String javaSpecName = properties.getProperty("java.specification.name"); 
-                if ("J2ME Foundation Specification".equals(javaSpecName)) 
+                String javaSpecName = properties.getProperty("java.specification.name");
+                if ("J2ME Foundation Specification".equals(javaSpecName))
                     vmProfile = "CDC-" + javaSpecVersion + "_Foundation-" + javaSpecVersion;  //$NON-NLS-2$
                 else {
                     // look for JavaSE if 1.6 or greater; otherwise look for J2SE
-                    Version v16 = new Version("1.6"); 
+                    Version v16 = new Version("1.6");
                     javaEdition = J2SE;
                     try {
                         javaVersion = new Version(javaSpecVersion);
@@ -562,7 +562,7 @@ public final class BundleUtil {
         }
         if (url == null)
             // the profile url is still null then use the osgi min profile in OSGi by default
-            url = findInSystemBundle("OSGi_Minimum-1.1.profile"); 
+            url = findInSystemBundle("OSGi_Minimum-1.1.profile");
         if (url != null) {
             InputStream in = null;
             try {
@@ -585,7 +585,7 @@ public final class BundleUtil {
                 result.put(Constants.OSGI_JAVA_PROFILE_NAME, vmProfile.replace('_', '/'));
             else
                 // last resort; default to the absolute minimum profile name for the framework
-                result.put(Constants.OSGI_JAVA_PROFILE_NAME, "OSGi/Minimum-1.1"); 
+                result.put(Constants.OSGI_JAVA_PROFILE_NAME, "OSGi/Minimum-1.1");
         return result;
     }
 
@@ -603,7 +603,7 @@ public final class BundleUtil {
         URL result = null;
         int minor = javaVersion.getMinor();
         do {
-            result = findInSystemBundle(javaEdition + javaVersion.getMajor() + "." + minor + PROFILE_EXT); 
+            result = findInSystemBundle(javaEdition + javaVersion.getMajor() + "." + minor + PROFILE_EXT);
             minor = minor - 1;
         } while (result == null && minor > 0);
         return result;
