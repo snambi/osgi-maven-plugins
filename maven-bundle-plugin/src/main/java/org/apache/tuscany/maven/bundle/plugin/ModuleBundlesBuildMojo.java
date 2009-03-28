@@ -6,15 +6,15 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
- * under the License.    
+ * under the License.
  */
 package org.apache.tuscany.maven.bundle.plugin;
 
@@ -57,7 +57,7 @@ import org.apache.maven.project.artifact.InvalidDependencyVersionException;
 
 /**
  * A maven plugin that generates a modules directory containing OSGi bundles for all the project's module dependencies.
- * 
+ *
  * @version $Rev$ $Date$
  * @goal generate-modules
  * @phase generate-resources
@@ -77,7 +77,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
 
     /**
      * Project builder -- builds a model from a pom.xml
-     * 
+     *
      * @component role="org.apache.maven.project.MavenProjectBuilder"
      * @required
      * @readonly
@@ -125,7 +125,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
 
     /**
      * Target directory.
-     * 
+     *
      *  @parameter expression="${project.build.directory}/modules"
      */
     private File targetDirectory;
@@ -137,35 +137,35 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
 
     /**
      * Directories containing artifacts to exclude.
-     * 
+     *
      * @parameter
      */
     private File[] excludeDirectories;
 
     /**
      * Directories containing groupids to exclude.
-     * 
+     *
      * @parameter
      */
     private String[] excludeGroupIds;
 
     /**
      * Directories containing groupids to include.
-     * 
+     *
      * @parameter
      */
     private String[] includeGroupIds;
 
     /**
-     * Set to true to generate configurations under a folder named as the distro 
-     * 
+     * Set to true to generate configurations under a folder named as the distro
+     *
      * @parameter default-value="true"
      */
     private boolean useDistributionName = true;
 
     /**
      * Set to true to generate a PDE target platform configuration.
-     * 
+     *
      *  @parameter default-value="true"
      */
     private boolean generateTargetPlatform = true;
@@ -182,14 +182,14 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
     private String[] eclipseFeatures;
 
     /**
-     * If we use the running eclipse as the default location for the target 
+     * If we use the running eclipse as the default location for the target
      * @parameter default-value="true"
      */
     private boolean useDefaultLocation = true;
 
     /**
      * Set to true to generate a plugin.xml.
-     * 
+     *
      *  @parameter default-value="false"
      */
     private boolean generatePlugin;
@@ -199,7 +199,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
      * @parameter default-value="true"
      */
     private boolean generateConfig = true;
-    
+
     /**
      * @parameter default-value="true"
      */
@@ -210,7 +210,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
      * @parameter default-value="true"
      */
     private boolean generateManifestJar = true;
-    
+
     /**
      * @parameter default-value="tuscany-sca-manifest.jar"
      */
@@ -220,28 +220,26 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
      * @parameter default-value="tuscany-sca-equinox-manifest.jar"
      */
     private String equinoxManifestJarName = "tuscany-sca-equinox-manifest.jar";
-    
 
     /**
      * @parameter default-value="true"
      */
     private boolean generateAntScript = true;
-    
+
     /**
      * @parameter
      */
     private ArtifactAggregation[] artifactAggregations;
-    
+
     /**
      * Inserts a generic Eclipse-BuddyPolicy header into generated artifacts manifests
      * @parameter default-value="dependent"
      */
     private String genericBuddyPolicy = "dependent";
-    
+
     private static final String XML_PI = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
     private static final String ASL_HEADER =
-            "<!--"
-            + "\n * Licensed to the Apache Software Foundation (ASF) under one"
+        "<!--" + "\n * Licensed to the Apache Software Foundation (ASF) under one"
             + "\n * or more contributor license agreements.  See the NOTICE file"
             + "\n * distributed with this work for additional information"
             + "\n * regarding copyright ownership.  The ASF licenses this file"
@@ -257,7 +255,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
             + "\n * KIND, either express or implied.  See the License for the"
             + "\n * specific language governing permissions and limitations"
             + "\n * under the License."
-            + "\n-->";    
+            + "\n-->";
 
     /**
      * Group the artifacts by distribution poms
@@ -268,7 +266,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
         // Key: the pom artifact id
         // Value: the names for the artifacts
         private Map<String, Set<String>> nameMap = new HashMap<String, Set<String>>();
-        
+
         private Map<String, String> artifactToNameMap = new HashMap<String, String>();
 
         public ProjectSet(List<MavenProject> projects) {
@@ -338,7 +336,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                 }
             }
 
-            // Find all the distribution poms 
+            // Find all the distribution poms
             List<MavenProject> poms = new ArrayList<MavenProject>();
             poms.add(project);
             if (useDistributionName) {
@@ -413,7 +411,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                         continue;
                     }
 
-                    // Copy an OSGi bundle as is 
+                    // Copy an OSGi bundle as is
                     log.info("Adding OSGi bundle artifact: " + artifact);
                     copyFile(artifactFile, root);
                     bundleSymbolicNames.add(artifact, bundleName);
@@ -428,7 +426,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                         continue;
                     }
 
-                    // Copy a WAR as is 
+                    // Copy a WAR as is
                     log.info("Adding WAR artifact: " + artifact);
                     copyFile(artifactFile, root);
 
@@ -468,7 +466,13 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                     Set<File> jarFiles = new HashSet<File>();
                     jarFiles.add(artifactFile);
                     String symbolicName = (artifact.getGroupId() + "." + artifact.getArtifactId());
-                    Manifest mf = BundleUtil.libraryManifest(jarFiles, symbolicName, symbolicName, version, null, this.genericBuddyPolicy);
+                    Manifest mf =
+                        BundleUtil.libraryManifest(jarFiles,
+                                                   symbolicName,
+                                                   symbolicName,
+                                                   version,
+                                                   null,
+                                                   this.genericBuddyPolicy);
                     File file = new File(dir, "META-INF");
                     file.mkdirs();
                     file = new File(file, "MANIFEST.MF");
@@ -501,7 +505,13 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                         copyFile(a.getFile(), dir);
                         jarNames.add(a, symbolicName + "-" + version + "/" + a.getFile().getName());
                     }
-                    Manifest mf = BundleUtil.libraryManifest(jarFiles, symbolicName, symbolicName, version, null, this.genericBuddyPolicy);
+                    Manifest mf =
+                        BundleUtil.libraryManifest(jarFiles,
+                                                   symbolicName,
+                                                   symbolicName,
+                                                   version,
+                                                   null,
+                                                   this.genericBuddyPolicy);
                     File file = new File(dir, "META-INF");
                     file.mkdirs();
                     file = new File(file, "MANIFEST.MF");
@@ -535,7 +545,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                 generateManifestJar(jarNames, root, log);
                 generateEquinoxLauncherManifestJar(jarNames, root, log);
             }
-            
+
             if (generateAntScript) {
                 generateANTPath(jarNames, root, log);
             }
@@ -558,9 +568,10 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
             // ps.println(XML_PI);
             ps.println(ASL_HEADER);
             String name = trim(e.getKey());
-            ps.println("<project name=\"tuscany."+name+"\">");
+            ps.println("<project name=\"tuscany." + name + "\">");
             ps.println("  <property name=\"tuscany.distro\" value=\"" + name + "\"/>");
-            ps.println("  <property name=\"tuscany.manifest\" value=\"" + new File(feature, manifestJarName).getCanonicalPath()
+            ps.println("  <property name=\"tuscany.manifest\" value=\"" + new File(feature, manifestJarName)
+                .getCanonicalPath()
                 + "\"/>");
             ps.println("  <path id=\"" + "tuscany.path" + "\">");
             ps.println("    <fileset dir=\"" + root.getCanonicalPath() + "\">");
@@ -659,16 +670,28 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
             log.info("Generating configuation: " + ini.getCanonicalPath());
             FileOutputStream fos = new FileOutputStream(ini);
             PrintStream ps = new PrintStream(fos);
-            ps.print("osgi.bundles=");
-            for (String f : locations) {
-                ps.print(f);
-                if (generateBundleStart) {
-                    ps.print("@:start,");
-                } else {
-                    ps.println(",");
+            int size = locations.size();
+            if (size > 0) {
+                ps.println("osgi.bundles=\\");
+                int count = 0;
+                for (String f : locations) {
+                    if (f.startsWith("osgi")) {
+                        continue;
+                    }
+                    ps.print("    ");
+                    ps.print(f);
+                    if (generateBundleStart) {
+                        ps.print("@:start");
+                    }
+                    if (count == size - 1) {
+                        // Last one
+                        ps.println();
+                    } else {
+                        ps.println(",\\");
+                    }
+                    count++;
                 }
             }
-            ps.println();
             ps.println("eclipse.ignoreApp=true");
             // Do not shutdown
             ps.println("osgi.noShutdown=true");
@@ -698,13 +721,10 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
 
     private MavenProject buildProject(Artifact artifact) throws ProjectBuildingException,
         InvalidDependencyVersionException, ArtifactResolutionException, ArtifactNotFoundException {
-        MavenProject pomProject =
-            mavenProjectBuilder.buildFromRepository(artifact, this.remoteRepos, this.local);
+        MavenProject pomProject = mavenProjectBuilder.buildFromRepository(artifact, this.remoteRepos, this.local);
         if (pomProject.getDependencyArtifacts() == null) {
-            pomProject.setDependencyArtifacts(pomProject
-                .createArtifacts(factory,
-                                 null, // Artifact.SCOPE_TEST,
-                                 new ScopeArtifactFilter(Artifact.SCOPE_TEST)));
+            pomProject.setDependencyArtifacts(pomProject.createArtifacts(factory, null, // Artifact.SCOPE_TEST,
+                                                                         new ScopeArtifactFilter(Artifact.SCOPE_TEST)));
         }
         ArtifactResolutionResult result =
             resolver.resolveTransitively(pomProject.getDependencyArtifacts(),
@@ -715,8 +735,9 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
         pomProject.setArtifacts(result.getArtifacts());
         return pomProject;
     }
-    
-    private ArtifactResolutionResult resolveTransitively(Artifact artifact) throws ArtifactResolutionException, ArtifactNotFoundException {
+
+    private ArtifactResolutionResult resolveTransitively(Artifact artifact) throws ArtifactResolutionException,
+        ArtifactNotFoundException {
         Artifact originatingArtifact = factory.createBuildArtifact("dummy", "dummy", "1.0", "jar");
 
         return resolver.resolveTransitively(Collections.singleton(artifact),
@@ -726,7 +747,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                                             artifactMetadataSource,
                                             null);
     }
-    
+
     /**
      * Convert tuscany-feature-xyz to feature-xyz
      * @param artifactId
@@ -756,8 +777,9 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
         in.close();
         out.close();
     }
-    
-    private static void addFileToJar(JarOutputStream out, String entryName, URL file) throws FileNotFoundException, IOException {
+
+    private static void addFileToJar(JarOutputStream out, String entryName, URL file) throws FileNotFoundException,
+        IOException {
         byte[] buf = new byte[4096];
         InputStream in = file.openStream();
         out.putNextEntry(new ZipEntry(entryName));
@@ -771,7 +793,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
         }
         in.close();
         out.closeEntry();
-    }    
+    }
 
     private void writeTarget(PrintStream ps, String pom, Set<String> ids, String[] features) {
         ps.println(XML_PI);
