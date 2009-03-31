@@ -716,6 +716,14 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
             }
             writeTarget(new PrintStream(targetFile), name, bundles, eclipseFeatures);
             targetFile.close();
+
+            // Generate the PDE target definition file for PDE 3.5
+            File target35 = new File(feature, "tuscany-pde35.target");
+            log.info("Generating target definition: " + target35.getCanonicalPath());
+            FileOutputStream target35File = new FileOutputStream(target35);
+            writePDE35Target(new PrintStream(target35File), name, bundles, eclipseFeatures);
+            target35File.close();
+
         }
     }
 
@@ -836,6 +844,50 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
         }
         ps.println("  </content>");
 
+        ps.println("</target>");
+
+    }
+
+    private void writePDE35Target(PrintStream ps, String pom, Set<String> ids, String[] features) {
+        ps.println(XML_PI);
+        ps.println("<?pde version=\"3.5\"?>");
+        ps.println(ASL_HEADER);
+
+        ps.println("<target name=\"Eclipse PDE 3.5 Target - " + pom + "\">");
+
+        if (executionEnvironment != null) {
+            ps
+                .println("  <targetJRE path=\"" + "org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/"
+                    + executionEnvironment
+                    + "\"/>");
+        }
+
+        ps.println("<locations>");
+        if (ids.size() > 0) {
+            ps.println("  <location path=\"" + targetDirectory + "\" type=\"Directory\">");
+            ps.println("    <includeBundles>");
+            for (String id : ids) {
+                ps.println("      <plugin id=\"" + id + "\"/>");
+            }
+            ps.println("    </includeBundles>");
+            ps.println("  </location>");
+        }
+
+        /*
+        if (useDefaultLocation) {
+            ps.println("  <location path=\"${eclipse_home}\" type=\"Profile\"/>");
+        }
+        */
+
+        /*
+        if (features != null) {
+            for (String f : features) {
+                ps.println(" <location id=\"" + f + "\" path=\"\" type=\"Feature\"/>");
+            }
+        }
+        */
+
+        ps.println("</locations>");
         ps.println("</target>");
 
     }
