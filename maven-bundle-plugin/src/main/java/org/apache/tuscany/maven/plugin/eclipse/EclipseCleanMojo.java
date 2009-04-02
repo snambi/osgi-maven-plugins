@@ -19,17 +19,16 @@
 package org.apache.tuscany.maven.plugin.eclipse;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.eclipse.Constants;
 import org.apache.maven.plugin.eclipse.EclipseConfigFile;
-import org.codehaus.plexus.util.FileUtils;
+import org.apache.maven.plugin.ide.IdeUtils;
 
 /**
  * Deletes the .project, .classpath, .wtpmodules files and .settings folder used by Eclipse.
- * 
+ *
  * @goal clean
  */
 public class EclipseCleanMojo
@@ -77,29 +76,34 @@ public class EclipseCleanMojo
     private static final String FILE_ECLIPSE_JDT_CORE_PREFS = ".settings/org.eclipse.jdt.core.prefs"; //$NON-NLS-1$
 
     /**
+     * AJDT preferences.
+     */
+    private static final String FILE_AJDT_PREFS = ".settings/org.eclipse.ajdt.ui.prefs"; //$NON-NLS-1$
+
+    /**
      * Packaging for the current project.
-     * 
+     *
      * @parameter expression="${project.packaging}"
      */
     private String packaging;
 
     /**
      * The root directory of the project
-     * 
+     *
      * @parameter expression="${basedir}"
      */
     private File basedir;
 
     /**
      * Skip the operation when true.
-     * 
+     *
      * @parameter expression="${eclipse.skip}" default-value="false"
      */
     private boolean skip;
 
     /**
      * additional generic configuration files for eclipse
-     * 
+     *
      * @parameter
      */
     private EclipseConfigFile[] additionalConfig;
@@ -128,6 +132,7 @@ public class EclipseCleanMojo
         delete( new File( basedir, FILE_DOT_COMPONENT_15 ) );
         delete( new File( basedir, FILE_FACET_CORE_XML ) );
         delete( new File( basedir, FILE_ECLIPSE_JDT_CORE_PREFS ) );
+        delete( new File( basedir, FILE_AJDT_PREFS ) );
 
         File settingsDir = new File( basedir, DIR_DOT_SETTINGS );
         if ( settingsDir.exists() && settingsDir.isDirectory() && settingsDir.list().length == 0 )
@@ -154,47 +159,19 @@ public class EclipseCleanMojo
 
     /**
      * Delete a file, handling log messages and exceptions
-     * 
+     *
      * @param f File to be deleted
      * @throws MojoExecutionException only if a file exists and can't be deleted
      */
     protected void delete( File f )
         throws MojoExecutionException
     {
-        if ( f.isDirectory() )
-        {
-            getLog().info( Messages.getString( "EclipseCleanMojo.deletingDirectory", f.getName() ) ); //$NON-NLS-1$
-        }
-        else
-        {
-            getLog().info( Messages.getString( "EclipseCleanMojo.deletingFile", f.getName() ) ); //$NON-NLS-1$
-        }
-
-        if ( f.exists() )
-        {
-            if ( !f.delete() )
-            {
-                try
-                {
-                    FileUtils.forceDelete( f );
-                }
-                catch ( IOException e )
-                {
-                    throw new MojoExecutionException( Messages.getString( "EclipseCleanMojo.failedtodelete", //$NON-NLS-1$
-                                                                          new Object[] { f.getName(),
-                                                                              f.getAbsolutePath() } ) );
-                }
-            }
-        }
-        else
-        {
-            getLog().debug( Messages.getString( "EclipseCleanMojo.nofilefound", f.getName() ) ); //$NON-NLS-1$
-        }
+        IdeUtils.delete( f, getLog() );
     }
 
     /**
      * Getter for <code>basedir</code>.
-     * 
+     *
      * @return Returns the basedir.
      */
     public File getBasedir()
@@ -204,7 +181,7 @@ public class EclipseCleanMojo
 
     /**
      * Setter for <code>basedir</code>.
-     * 
+     *
      * @param basedir The basedir to set.
      */
     public void setBasedir( File basedir )

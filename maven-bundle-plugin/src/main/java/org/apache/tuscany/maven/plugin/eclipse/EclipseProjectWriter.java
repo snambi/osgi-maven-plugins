@@ -26,6 +26,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -34,6 +35,7 @@ import java.util.Set;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.eclipse.BuildCommand;
+import org.apache.maven.plugin.eclipse.Messages;
 import org.apache.maven.plugin.eclipse.writers.AbstractEclipseWriter;
 import org.apache.maven.plugin.ide.IdeDependency;
 import org.apache.maven.plugin.ide.IdeUtils;
@@ -46,11 +48,11 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 /**
  * Writes eclipse .project file.
- * 
+ *
  * @author <a href="mailto:trygvis@inamo.no">Trygve Laugst&oslash;l</a>
  * @author <a href="mailto:kenney@neonics.com">Kenney Westerhof</a>
  * @author <a href="mailto:fgiust@apache.org">Fabrizio Giustina</a>
- * @version $Id: EclipseProjectWriter.java 616816 2008-01-30 17:23:08Z aheritier $
+ * @version $Id: EclipseProjectWriter.java 728546 2008-12-21 22:56:51Z bentmann $
  */
 public class EclipseProjectWriter
     extends AbstractEclipseWriter
@@ -187,14 +189,18 @@ public class EclipseProjectWriter
         // referenced projects should not be added for plugins
         if ( !config.isPde() )
         {
+            List duplicates = new ArrayList();
             for ( int j = 0; j < config.getDepsOrdered().length; j++ )
             {
                 IdeDependency dep = config.getDepsOrdered()[j];
-                if ( dep.isReferencedProject() )
+                // Avoid duplicates entries when same project is refered using multiple types
+                // (ejb, test-jar ...)
+                if ( dep.isReferencedProject() && !duplicates.contains( dep.getEclipseProjectName() ) )
                 {
                     writer.startElement( "project" ); //$NON-NLS-1$
                     writer.writeText( dep.getEclipseProjectName() );
                     writer.endElement();
+                    duplicates.add( dep.getEclipseProjectName() );
                 }
             }
         }
