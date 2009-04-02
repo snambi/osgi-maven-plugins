@@ -64,6 +64,18 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <!-- Tuscany repository to hold artifacts that are not published in the public maven repos -->
+        <repository>
+            <id>tuscany.repo</id>
+            <name>Tuscany Maven 2.x Repository</name>
+            <url>http://svn.apache.org/repos/asf/tuscany/maven</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -156,7 +168,7 @@
             <artifactId>maven-plugin-api</artifactId>
             <version>2.0.8</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-project</artifactId>
@@ -168,25 +180,25 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        
+
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-settings</artifactId>
             <version>2.0.8</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-artifact</artifactId>
             <version>2.0.8</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-model</artifactId>
             <version>2.0.8</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-compiler-api</artifactId>
@@ -196,7 +208,7 @@
         <dependency>
             <groupId>org.eclipse.jdt</groupId>
             <artifactId>core</artifactId>
-            <version>3.3.0-v_771</version>
+            <version>3.4.2-v_883_R34x</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.eclipse.core</groupId>
@@ -216,11 +228,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        
+
         <dependency>
             <groupId>org.eclipse</groupId>
             <artifactId>osgi</artifactId>
-            <version>3.3.0-v20070530</version>
+            <version>3.4.0-v20080605-1900</version>
             <scope>compile</scope>
         </dependency>
 

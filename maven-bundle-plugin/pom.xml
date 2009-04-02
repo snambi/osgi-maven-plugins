@@ -64,6 +64,18 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <!-- Tuscany repository to hold artifacts that are not published in the public maven repos -->
+        <repository>
+            <id>tuscany.repo</id>
+            <name>Tuscany Maven 2.x Repository</name>
+            <url>http://svn.apache.org/repos/asf/tuscany/maven</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -202,7 +214,7 @@
         <dependency>
             <groupId>org.eclipse</groupId>
             <artifactId>osgi</artifactId>
-            <version>3.3.0-v20070530</version>
+            <version>3.4.0-v20080605-1900</version>
             <scope>compile</scope>
         </dependency>
 
