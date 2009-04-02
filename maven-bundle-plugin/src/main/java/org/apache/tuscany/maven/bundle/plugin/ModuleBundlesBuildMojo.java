@@ -233,9 +233,9 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
 
     /**
      * Inserts a generic Eclipse-BuddyPolicy header into generated artifacts manifests
-     * @parameter default-value="dependent"
+     * @parameter
      */
-    private String genericBuddyPolicy = "dependent";
+    private String eclipseBuddyPolicy = null;
 
     private static final String XML_PI = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
     private static final String ASL_HEADER =
@@ -472,7 +472,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                                                    symbolicName,
                                                    version,
                                                    null,
-                                                   this.genericBuddyPolicy);
+                                                   this.eclipseBuddyPolicy);
                     File file = new File(dir, "META-INF");
                     file.mkdirs();
                     file = new File(file, "MANIFEST.MF");
@@ -511,7 +511,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                                                    symbolicName,
                                                    version,
                                                    null,
-                                                   this.genericBuddyPolicy);
+                                                   this.eclipseBuddyPolicy);
                     File file = new File(dir, "META-INF");
                     file.mkdirs();
                     file = new File(file, "MANIFEST.MF");
@@ -695,8 +695,6 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
             ps.println("eclipse.ignoreApp=true");
             // Do not shutdown
             ps.println("osgi.noShutdown=true");
-            // Start a default console
-            ps.println("osgi.console=");
             ps.close();
         }
     }
