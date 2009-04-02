@@ -29,12 +29,12 @@
     <artifactId>maven-eclipse-compiler</artifactId>
     <packaging>jar</packaging>
     <name>Apache Tuscany Maven Eclipse Compiler Plugin</name>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1</version>
 
     <scm>
-        <connection>scm:svn:http://svn.apache.org/repos/asf/tuscany/maven-plugins/trunk/maven-eclipse-plugin</connection>
-        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/tuscany/maven-plugins/trunk/maven-eclipse-plugin</developerConnection>
-        <url>http://svn.apache.org/repos/asf/tuscany/</url>
+        <connection>scm:svn:http://svn.apache.org/repos/asf/tuscany/maven-plugins/tags/maven-eclipse-compiler-1.0.1</connection>
+        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/tuscany/maven-plugins/tags/maven-eclipse-compiler-1.0.1</developerConnection>
+        <url>scm:svn:https://svn.apache.org/repos/asf/tuscany/maven-plugins/tags/maven-eclipse-compiler-1.0.1</url>
     </scm>
 
     <distributionManagement>
