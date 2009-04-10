@@ -123,6 +123,10 @@ final class BundleUtil {
             StringBuffer classpath = new StringBuffer();
             Set<String> exportedPackages = new HashSet<String>();
             for (File jarFile : jarFiles) {
+                if (!jarFile.exists()) {
+                    logger.warning(jarFile + " doesn't exist.");
+                    continue;
+                }
                 addPackages(jarFile, exportedPackages, version);
                 if (dir != null) {
                     classpath.append(dir).append("/");
