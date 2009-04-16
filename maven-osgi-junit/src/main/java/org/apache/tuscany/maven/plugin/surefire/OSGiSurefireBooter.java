@@ -573,13 +573,18 @@ public class OSGiSurefireBooter {
         System.out.println("sbcp: " + surefireBootClassPathUrls);
         */
         
-        List bootClasspath = new ArrayList(surefireBootClassPathUrls.size() + classPathUrls.size());
+        List bootClasspath = new ArrayList(surefireBootClassPathUrls.size());
 
         bootClasspath.addAll(surefireBootClassPathUrls);
 
+        /**
+         * For OSGi, we don't want to polute the system classpath 
+         */
+        /*
         if (useSystemClassLoader()) {
             bootClasspath.addAll(classPathUrls);
         }
+        */
 
         Commandline cli =
             forkConfiguration.createCommandLine(bootClasspath, useManifestOnlyJar());
