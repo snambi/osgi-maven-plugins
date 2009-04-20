@@ -19,6 +19,7 @@
 package org.apache.tuscany.maven.bundle.plugin;
 
 import static org.apache.tuscany.maven.bundle.plugin.BundleUtil.write;
+import static org.osgi.framework.Constants.BUNDLE_CLASSPATH;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -169,6 +170,12 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
      *  @parameter default-value="true"
      */
     private boolean generateTargetPlatform = true;
+
+    /**
+     * Expand non-tuscany bundles as a folder
+     * @parameter default-value="false"
+     */
+    private boolean expandThirdPartyBundle = false;
 
     /**
      * OSGi execution environment
@@ -369,7 +376,8 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                 }
 
                 // Only consider JAR and WAR files
-                if (!"jar".equals(artifact.getType()) && !"war".equals(artifact.getType())) {
+                if (!"jar".equals(artifact.getType()) && !"bundle".equals(artifact.getType())
+                    && !"war".equals(artifact.getType())) {
                     continue;
                 }
 
@@ -396,9 +404,11 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                 }
 
                 // Get the bundle name if the artifact is an OSGi bundle
+                Manifest mf = null;
                 String bundleName = null;
                 try {
-                    bundleName = BundleUtil.getBundleSymbolicName(artifact.getFile());
+                    mf = BundleUtil.getManifest(artifactFile);
+                    bundleName = BundleUtil.getBundleSymbolicName(mf);
                 } catch (IOException e) {
                     throw new MojoExecutionException(e.getMessage(), e);
                 }
@@ -413,10 +423,41 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
 
                     // Copy an OSGi bundle as is
                     log.info("Adding OSGi bundle artifact: " + artifact);
-                    copyFile(artifactFile, root);
-                    bundleSymbolicNames.add(artifact, bundleName);
-                    bundleLocations.add(artifact, artifactFile.getName());
-                    jarNames.add(artifact, artifactFile.getName());
+
+                    if (!expandThirdPartyBundle || artifact.getGroupId().startsWith("org.apache.tuscany.sca")
+                        || artifact.getGroupId().startsWith("org.eclipse")) {
+                        copyFile(artifactFile, root);
+                        bundleSymbolicNames.add(artifact, bundleName);
+                        bundleLocations.add(artifact, artifactFile.getName());
+                        jarNames.add(artifact, artifactFile.getName());
+                    } else {
+                        // Expanding the bundle into a folder
+                        
+                        // Add the Bundle-ClassPath
+                        String cp = mf.getMainAttributes().getValue(BUNDLE_CLASSPATH);
+                        if (cp == null) {
+                            cp = artifactFile.getName();
+                        } else {
+                            cp = cp + "," + artifactFile.getName();
+                        }
+                        mf.getMainAttributes().putValue(BUNDLE_CLASSPATH, cp);
+                        
+                        int index = artifactFile.getName().lastIndexOf('.');
+                        String dirName = artifactFile.getName().substring(0, index);
+                        File dir = new File(root, dirName);
+
+                        File file = new File(dir, "META-INF");
+                        file.mkdirs();
+                        file = new File(file, "MANIFEST.MF");
+
+                        FileOutputStream fos = new FileOutputStream(file);
+                        write(mf, fos);
+                        fos.close();
+                        copyFile(artifactFile, dir);
+                        bundleSymbolicNames.add(artifact, bundleName);
+                        bundleLocations.add(artifact, dir.getName());
+                        jarNames.add(artifact, dirName + "/" + artifactFile.getName());
+                    }
 
                 } else if ("war".equals(artifact.getType())) {
 
@@ -432,11 +473,8 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
 
                 } else {
 
-                    //                    String version = BundleUtil.osgiVersion(artifact.getVersion());
-                    //                    String symbolicName = (artifact.getGroupId() + "." + artifact.getArtifactId());
-                    //                    String dirName = symbolicName + "_" + version;
-
-                    String dirName = artifactFile.getName().substring(0, artifactFile.getName().length() - 4);
+                    int index = artifactFile.getName().lastIndexOf('.');
+                    String dirName = artifactFile.getName().substring(0, index);
                     File dir = new File(root, dirName);
 
                     // Exclude artifact if its file name is excluded
@@ -466,7 +504,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                     Set<File> jarFiles = new HashSet<File>();
                     jarFiles.add(artifactFile);
                     String symbolicName = (artifact.getGroupId() + "." + artifact.getArtifactId());
-                    Manifest mf =
+                    mf =
                         BundleUtil.libraryManifest(jarFiles,
                                                    symbolicName,
                                                    symbolicName,

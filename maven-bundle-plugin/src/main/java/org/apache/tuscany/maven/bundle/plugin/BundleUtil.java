@@ -32,6 +32,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.Set;
@@ -60,24 +61,16 @@ final class BundleUtil {
      * @throws IOException
      */
     static String getBundleSymbolicName(File file) throws IOException {
-        if (!file.exists()) {
+        Manifest manifest = getManifest(file);
+        return getBundleSymbolicName(manifest);
+    }
+
+    static String getBundleSymbolicName(Manifest manifest) {
+        if (manifest == null) {
             return null;
         }
-        String bundleName = null;
-        if (file.isDirectory()) {
-            File mf = new File(file, "META-INF/MANIFEST.MF");
-            if (mf.isFile()) {
-                Manifest manifest = new Manifest(new FileInputStream(mf));
-                bundleName = manifest.getMainAttributes().getValue(BUNDLE_SYMBOLICNAME);
-            }
-        } else {
-            JarFile jar = new JarFile(file, false);
-            Manifest manifest = jar.getManifest();
-            if (manifest != null){
-            	bundleName = manifest.getMainAttributes().getValue(BUNDLE_SYMBOLICNAME);
-            }
-            jar.close();
-        }
+
+        String bundleName = manifest.getMainAttributes().getValue(BUNDLE_SYMBOLICNAME);
         if (bundleName == null) {
             return bundleName;
         }
@@ -86,6 +79,26 @@ final class BundleUtil {
             bundleName = bundleName.substring(0, sc);
         }
         return bundleName;
+    }
+    
+    static Manifest getManifest(File file) throws IOException {
+        if (!file.exists()) {
+            return null;
+        }
+        Manifest manifest = null;
+        if (file.isDirectory()) {
+            File mf = new File(file, "META-INF/MANIFEST.MF");
+            if (mf.isFile()) {
+                InputStream is = new FileInputStream(mf);
+                manifest = new Manifest(new FileInputStream(mf));
+                is.close();
+            }
+        } else {
+            JarFile jar = new JarFile(file, false);
+            manifest = jar.getManifest();
+            jar.close();
+        }
+        return manifest;
     }
 
     /**
