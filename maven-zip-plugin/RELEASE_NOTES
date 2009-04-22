@@ -1,0 +1,7 @@
+Apache Tuscany Maven Zip Plugin Alpha1 Release Notes
+====================================================
+
+Initial release
+
+Supports using a packaging of sca-zip in a pom.xml to create a zip format SCA contribution
+
