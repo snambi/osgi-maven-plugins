@@ -1,7 +1,23 @@
-This module is a Maven compiler which uses the Eclipse Java compiler which is 
-used by the Tuscany SCA project build.
+This module is a Maven plugin which supports using a packaging of zip in a pom.xml to 
+create a zip format SCA contribution.
 
-To build, from the top maven-eclipse-compiler run maven:
+An exmaple pom.xml:
+   <packaging>zip</packaging>
+   ... 
+   <build>
+      ...
+      <plugins>
+         <plugin>
+            <groupId>org.apache.tuscany.maven.plugins</groupId>
+            <artifactId>maven-zip-plugin</artifactId>
+            <extensions>true</extensions>
+         </plugin>
+      ...
+      </plugins>
+   </build>
+
+
+To build, from the top maven-zip-plugin run maven:
 
 mvn
 
@@ -47,7 +63,7 @@ and a profile named "release". For example:
       <id>release</id>
       <properties>
         <gpg.passphrase>...</gpg.passphrase>
-        <deploy.altRepository>apache.releases::default::scp://people.apache.org/home/antelder/public_html/tuscany/maven-eclipse-compiler-1.0</deploy.altRepository>
+        <deploy.altRepository>apache.releases::default::scp://people.apache.org/home/antelder/public_html/tuscany/maven-zip-plugin-1.0</deploy.altRepository>
       </properties>
     </profile>
   </profiles>
@@ -56,7 +72,7 @@ Call a vote to release the module, eg: http://apache.markmail.org/message/6jnlfx
 
 After a successfule vote copy the staging artifacts to the live repository, eg: 
 
-cp -p -v -R  maven-eclipse-compiler-1.0/org/apache/tuscany/maven/plugins/ /x1/www/people.apache.org/repo/m2-ibiblio-rsync-repository/org/apache/tuscany/maven/plugins
+cp -p -v -R  maven-zip-plugin-alpha1/org/apache/tuscany/maven/plugins/ /x1/www/people.apache.org/repo/m2-ibiblio-rsync-repository/org/apache/tuscany/maven/plugins
 
 
 
