@@ -1,0 +1,7 @@
+Apache Tuscany Maven Tuscany Plugin Alpha1 Release Notes
+========================================================
+
+Initial release
+
+This module is a Maven plugin enabling using "mvn tuscany:run" for starting a Tuscany runtime
+to run a project as an SCA contribution.
