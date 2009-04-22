@@ -29,12 +29,12 @@
     <artifactId>maven-tuscany-plugin</artifactId>
     <packaging>maven-plugin</packaging>
     <name>Apache Tuscany Maven Tuscany Run Plugin</name>
-    <version>1.0-SNAPSHOT</version>
+    <version>alpha1</version>
 
     <scm>
-        <connection>scm:svn:http://svn.apache.org/repos/asf/tuscany/maven-plugins/trunk/maven-tuscany-plugin</connection>
-        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/tuscany/maven-plugins/trunk/maven-tuscany-plugin</developerConnection>
-        <url>http://svn.apache.org/repos/asf/tuscany/</url>
+        <connection>scm:svn:http://svn.apache.org/repos/asf/tuscany/maven-plugins/tags/maven-tuscany-plugin-alpha1</connection>
+        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/tuscany/maven-plugins/tags/maven-tuscany-plugin-alpha1</developerConnection>
+        <url>scm:svn:https://svn.apache.org/repos/asf/tuscany/maven-plugins/tags/maven-tuscany-plugin-alpha1</url>
     </scm>
 
     <distributionManagement>
