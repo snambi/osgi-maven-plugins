@@ -16,6 +16,8 @@ An example pom.xml:
       </plugins>
    </build>
 
+This Tuscany module includes much code copied from the Maven WAR plugin 2.0.2 
+written by the Apache Maven team.
 
 To build, from the top maven-zip-plugin directory run maven:
 
