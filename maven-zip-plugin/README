@@ -1,7 +1,7 @@
 This module is a Maven plugin which supports using a packaging of zip in a pom.xml to 
 create a zip format SCA contribution.
 
-An exmaple pom.xml:
+An example pom.xml:
    <packaging>zip</packaging>
    ... 
    <build>
@@ -17,7 +17,7 @@ An exmaple pom.xml:
    </build>
 
 
-To build, from the top maven-zip-plugin run maven:
+To build, from the top maven-zip-plugin directory run maven:
 
 mvn
 
@@ -26,7 +26,7 @@ or once all the dependencies have been downloaded and a succesful build run use:
 mvn clean install -o
 
 So as to avoid the Tuscany SCA project using SNAPSHOT dependencies any changes
-to this maven-eclipse-compiler module should be released and the Tuscany SCA
+to this maven-zip-plugin module should be released and the Tuscany SCA
 project updated to use the newly released version.
 
 To release this module:
