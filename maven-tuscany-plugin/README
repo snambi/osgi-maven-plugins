@@ -1,6 +1,6 @@
 This module is a Maven plugin for starting a Tuscany runtime which runs the project as an SCA contribution.
 
-To congfigure the porject add the following to the pom.xml:
+To configure the project add the following to the pom.xml:
 
    <build>
       ...
@@ -28,7 +28,7 @@ or once all the dependencies have been downloaded and a succesful build run use:
 mvn clean install -o
 
 So as to avoid the Tuscany SCA project using SNAPSHOT dependencies any changes
-to this maven-eclipse-compiler module should be released and the Tuscany SCA
+to this maven-tuscany-plugin module should be released and the Tuscany SCA
 project updated to use the newly released version.
 
 To release this module:
