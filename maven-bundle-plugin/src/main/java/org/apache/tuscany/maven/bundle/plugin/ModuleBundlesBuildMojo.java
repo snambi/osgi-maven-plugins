@@ -239,6 +239,11 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
     private ArtifactAggregation[] artifactAggregations;
 
     /**
+     * @parameter
+     */
+    private ArtifactManifest[] artifactManifests;
+
+    /**
      * Inserts a generic Eclipse-BuddyPolicy header into generated artifacts manifests
      * @parameter
      */
@@ -303,6 +308,25 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
             }
             artifactToNameMap.put(key, name);
         }
+    }
+
+    private Manifest findManifest(Artifact artifact) throws IOException {
+        if (artifactManifests == null) {
+            return null;
+        }
+        for (ArtifactManifest m : artifactManifests) {
+            if (m.matches(artifact)) {
+                File mf = m.getManifestFile();
+                if (mf != null) {
+                    FileInputStream is = new FileInputStream(mf);
+                    Manifest manifest = new Manifest(is);
+                    is.close();
+                    getLog().info("MANIFEST.MF found for " + artifact + " (" + mf + ")");
+                    return manifest;
+                }
+            }
+        }
+        return null;
     }
 
     public void execute() throws MojoExecutionException {
@@ -403,6 +427,8 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                     log.debug("Processing artifact: " + artifact);
                 }
 
+                Manifest customizedMF = findManifest(artifact);
+
                 // Get the bundle name if the artifact is an OSGi bundle
                 Manifest mf = null;
                 String bundleName = null;
@@ -413,7 +439,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                     throw new MojoExecutionException(e.getMessage(), e);
                 }
 
-                if (bundleName != null) {
+                if (bundleName != null && customizedMF == null) {
 
                     // Exclude artifact if its file name is excluded
                     if (excludedFileNames.contains(artifactFile.getName())) {
@@ -432,16 +458,9 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                         jarNames.add(artifact, artifactFile.getName());
                     } else {
                         // Expanding the bundle into a folder
-                        
-                        // Add the Bundle-ClassPath
-                        String cp = mf.getMainAttributes().getValue(BUNDLE_CLASSPATH);
-                        if (cp == null) {
-                            cp = artifactFile.getName();
-                        } else {
-                            cp = cp + "," + artifactFile.getName();
-                        }
-                        mf.getMainAttributes().putValue(BUNDLE_CLASSPATH, cp);
-                        
+
+                        setBundleClassPath(mf, artifactFile);
+
                         int index = artifactFile.getName().lastIndexOf('.');
                         String dirName = artifactFile.getName().substring(0, index);
                         File dir = new File(root, dirName);
@@ -499,18 +518,30 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
 
                     // Create a bundle directory for a non-OSGi JAR
                     log.info("Adding JAR artifact: " + artifact);
-                    String version = BundleUtil.osgiVersion(artifact.getVersion());
 
-                    Set<File> jarFiles = new HashSet<File>();
-                    jarFiles.add(artifactFile);
-                    String symbolicName = (artifact.getGroupId() + "." + artifact.getArtifactId());
-                    mf =
-                        BundleUtil.libraryManifest(jarFiles,
-                                                   symbolicName,
-                                                   symbolicName,
-                                                   version,
-                                                   null,
-                                                   this.eclipseBuddyPolicy);
+                    String symbolicName = null;
+                    if (customizedMF == null) {
+                        String version = BundleUtil.osgiVersion(artifact.getVersion());
+
+                        Set<File> jarFiles = new HashSet<File>();
+                        jarFiles.add(artifactFile);
+                        symbolicName = (artifact.getGroupId() + "." + artifact.getArtifactId());
+                        mf =
+                            BundleUtil.libraryManifest(jarFiles,
+                                                       symbolicName,
+                                                       symbolicName,
+                                                       version,
+                                                       null,
+                                                       this.eclipseBuddyPolicy,
+                                                       this.executionEnvironment);
+                    } else {
+                        mf = customizedMF;
+                        symbolicName = BundleUtil.getBundleSymbolicName(mf);
+                        if (symbolicName == null) {
+                            throw new MojoExecutionException("Invalid customized MANIFEST.MF for " + artifact);
+                        }
+                        setBundleClassPath(mf, artifactFile);
+                    }
                     File file = new File(dir, "META-INF");
                     file.mkdirs();
                     file = new File(file, "MANIFEST.MF");
@@ -549,7 +580,8 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                                                    symbolicName,
                                                    version,
                                                    null,
-                                                   this.eclipseBuddyPolicy);
+                                                   this.eclipseBuddyPolicy,
+                                                   this.executionEnvironment);
                     File file = new File(dir, "META-INF");
                     file.mkdirs();
                     file = new File(file, "MANIFEST.MF");
@@ -592,6 +624,17 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
             throw new MojoExecutionException(e.getMessage(), e);
         }
 
+    }
+
+    private void setBundleClassPath(Manifest mf, File artifactFile) {
+        // Add the Bundle-ClassPath
+        String cp = mf.getMainAttributes().getValue(BUNDLE_CLASSPATH);
+        if (cp == null) {
+            cp = artifactFile.getName();
+        } else {
+            cp = cp + "," + artifactFile.getName();
+        }
+        mf.getMainAttributes().putValue(BUNDLE_CLASSPATH, cp);
     }
 
     private void generateANTPath(ProjectSet jarNames, File root, Log log) throws FileNotFoundException, IOException {

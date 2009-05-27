@@ -6,15 +6,15 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
- * under the License.    
+ * under the License.
  */
 
 package org.apache.tuscany.maven.bundle.plugin;
@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -55,7 +56,7 @@ final class BundleUtil {
     private final static Logger logger = Logger.getLogger(BundleUtil.class.getName());
     /**
      * Returns the name of a bundle, or null if the given file is not a bundle.
-     *  
+     *
      * @param file
      * @return
      * @throws IOException
@@ -80,7 +81,7 @@ final class BundleUtil {
         }
         return bundleName;
     }
-    
+
     static Manifest getManifest(File file) throws IOException {
         if (!file.exists()) {
             return null;
@@ -103,32 +104,33 @@ final class BundleUtil {
 
     /**
      * Generate a Bundle manifest for a set of JAR files.
-     * 
+     *
      * @param jarFiles
      * @param name
      * @param symbolicName
      * @param version
-     * @param dir 
+     * @param dir
      * @return
      * @throws IllegalStateException
      */
     static Manifest libraryManifest(Set<File> jarFiles, String name, String symbolicName, String version, String dir)
     throws IllegalStateException {
-    	return libraryManifest(jarFiles, name, symbolicName, version, dir, null);
+    	return libraryManifest(jarFiles, name, symbolicName, version, dir, null, null);
     }
     /**
      * Generate a Bundle manifest for a set of JAR files.
-     * 
+     *
      * @param jarFiles
      * @param name
      * @param symbolicName
      * @param version
-     * @param dir 
-     * @param buddyPolicy 
+     * @param dir
+     * @param buddyPolicy
+     * @param env
      * @return
      * @throws IllegalStateException
      */
-    static Manifest libraryManifest(Set<File> jarFiles, String name, String symbolicName, String version, String dir, String buddyPolicy)
+    static Manifest libraryManifest(Set<File> jarFiles, String name, String symbolicName, String version, String dir, String buddyPolicy, String env)
         throws IllegalStateException {
         try {
 
@@ -143,10 +145,15 @@ final class BundleUtil {
                 addPackages(jarFile, exportedPackages, version);
                 if (dir != null) {
                     classpath.append(dir).append("/");
-                } 
+                }
                 classpath.append(jarFile.getName());
                 classpath.append(",");
             }
+
+            if (env == null) {
+                env = "JavaSE-1.6";
+            }
+            exportedPackages.removeAll(getSystemPackages(env));
 
             // Generate export-package and import-package declarations
             StringBuffer exports = new StringBuffer();
@@ -165,7 +172,7 @@ final class BundleUtil {
                     logger.warning("Duplicate package skipped: " + export);
                 }
             }
- 
+
             // Create a manifest
             Manifest manifest = new Manifest();
             Attributes attributes = manifest.getMainAttributes();
@@ -196,7 +203,7 @@ final class BundleUtil {
 
     /**
      * Write a bundle manifest.
-     * 
+     *
      * @param manifest
      * @param out
      * @throws IOException
@@ -219,7 +226,7 @@ final class BundleUtil {
 
     /**
      * Add packages to be exported out of a JAR file.
-     * 
+     *
      * @param jarFile
      * @param packages
      * @throws IOException
@@ -235,7 +242,7 @@ final class BundleUtil {
 
     /**
      * Write manifest attributes.
-     * 
+     *
      * @param attributes
      * @param key
      * @param dos
@@ -264,7 +271,7 @@ final class BundleUtil {
 
     /**
      * Strip an OSGi export, only retain the package name and version.
-     * 
+     *
      * @param export
      * @return
      */
@@ -289,7 +296,7 @@ final class BundleUtil {
 
     /**
      * Add all the packages out of a JAR.
-     * 
+     *
      * @param jarFile
      * @param packages
      * @param version
@@ -315,6 +322,22 @@ final class BundleUtil {
         is.close();
     }
 
+    private static Set<String> getSystemPackages(String env) throws IOException {
+        Set<String> sysPackages = new HashSet<String>();
+        InputStream is = BundleUtil.class.getResourceAsStream("/" + env + ".profile");
+        if (is != null) {
+            Properties props = new Properties();
+            props.load(is);
+            String pkgs = (String)props.get("org.osgi.framework.system.packages");
+            if (pkgs != null) {
+                for (String p : pkgs.split(",")) {
+                    sysPackages.add(p.trim());
+                }
+            }
+        }
+        return sysPackages;
+    }
+
     /**
      * Returns the name of the exported package in the given export.
      * @param export
@@ -330,7 +353,7 @@ final class BundleUtil {
 
     /**
      * Add the packages exported by a bundle.
-     *  
+     *
      * @param file
      * @param packages
      * @return
@@ -397,7 +420,7 @@ final class BundleUtil {
     }
 
     /**
-     * Convert the maven version into OSGi version 
+     * Convert the maven version into OSGi version
      * @param mavenVersion
      * @return
      */
