@@ -20,6 +20,7 @@ package org.apache.tuscany.maven.bundle.plugin;
 
 import static org.apache.tuscany.maven.bundle.plugin.BundleUtil.write;
 import static org.osgi.framework.Constants.BUNDLE_CLASSPATH;
+import static org.osgi.framework.Constants.BUNDLE_VERSION;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -322,6 +323,28 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                     Manifest manifest = new Manifest(is);
                     is.close();
                     getLog().info("MANIFEST.MF found for " + artifact + " (" + mf + ")");
+                    return manifest;
+                } else {
+                    getLog().info("Overriding the manifest for "+artifact);
+                    Manifest manifest = BundleUtil.getManifest(artifact.getFile());
+                    Set<File> jarFiles = new HashSet<File>();
+                    jarFiles.add(artifact.getFile());
+                    String symbolicName = BundleUtil.getBundleSymbolicName(manifest);
+                    if (symbolicName == null) {
+                        // Not a bundle
+                        continue;
+                    }
+                    String version = manifest.getMainAttributes().getValue(BUNDLE_VERSION);
+                    manifest =
+                        BundleUtil.libraryManifest(jarFiles,
+                                                   symbolicName,
+                                                   symbolicName,
+                                                   version,
+                                                   null,
+                                                   this.eclipseBuddyPolicy,
+                                                   this.executionEnvironment);
+                    // Remove it as it will be added later on
+                    manifest.getMainAttributes().remove(new Attributes.Name(BUNDLE_CLASSPATH));
                     return manifest;
                 }
             }
@@ -761,6 +784,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                     }
                     ps.print("    ");
                     ps.print(f);
+                    // FIXME: We should not add @start for fragments
                     if (generateBundleStart) {
                         ps.print("@:start");
                     }
