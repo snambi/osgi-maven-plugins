@@ -32,8 +32,8 @@
     <version>1.0-SNAPSHOT</version>
 
     <scm>
-        <connection>scm:svn:http://svn.apache.org/repos/asf/tuscany/maven-plugins/trunk/maven-bundle-plugin</connection>
-        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/tuscany/maven-plugins/trunk/maven-bundle-plugin</developerConnection>
+        <connection>scm:svn:http://svn.apache.org/repos/asf/tuscany/maven-plugins/trunk/maven-osgi-junit-plugin</connection>
+        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/tuscany/maven-plugins/trunk/maven-osgi-junit-plugin</developerConnection>
         <url>http://svn.apache.org/repos/asf/tuscany/</url>
     </scm>
 
@@ -62,6 +62,18 @@
             </releases>
             <snapshots>
                 <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <!-- Tuscany repository to hold artifacts that are not published in the public maven repos -->
+        <repository>
+            <id>tuscany.repo</id>
+            <name>Tuscany Maven 2.x Repository</name>
+            <url>http://svn.apache.org/repos/asf/tuscany/maven</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
             </snapshots>
         </repository>
     </repositories>
