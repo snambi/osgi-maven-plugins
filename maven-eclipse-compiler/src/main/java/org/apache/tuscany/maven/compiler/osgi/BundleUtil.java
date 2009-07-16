@@ -471,23 +471,23 @@ public final class BundleUtil {
 
     public static void loadVMProfile(Properties properties) {
         Properties profileProps = findVMProfile(properties);
-        String systemExports = properties.getProperty(Constants.OSGI_FRAMEWORK_SYSTEM_PACKAGES);
+        String systemExports = properties.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES);
         // set the system exports property using the vm profile; only if the property is not already set
         if (systemExports == null) {
-            systemExports = profileProps.getProperty(Constants.OSGI_FRAMEWORK_SYSTEM_PACKAGES);
+            systemExports = profileProps.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES);
             if (systemExports != null)
-                properties.put(Constants.OSGI_FRAMEWORK_SYSTEM_PACKAGES, systemExports);
+                properties.put(Constants.FRAMEWORK_SYSTEMPACKAGES, systemExports);
         }
         // set the org.osgi.framework.bootdelegation property according to the java profile
         String type = properties.getProperty(Constants.OSGI_JAVA_PROFILE_BOOTDELEGATION); // a null value means ignore
-        String profileBootDelegation = profileProps.getProperty(Constants.OSGI_BOOTDELEGATION);
+        String profileBootDelegation = profileProps.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
         if (Constants.OSGI_BOOTDELEGATION_OVERRIDE.equals(type)) {
             if (profileBootDelegation == null)
-                properties.remove(Constants.OSGI_BOOTDELEGATION); // override with a null value
+                properties.remove(Constants.FRAMEWORK_BOOTDELEGATION); // override with a null value
             else
-                properties.put(Constants.OSGI_BOOTDELEGATION, profileBootDelegation); // override with the profile value
+                properties.put(Constants.FRAMEWORK_BOOTDELEGATION, profileBootDelegation); // override with the profile value
         } else if (Constants.OSGI_BOOTDELEGATION_NONE.equals(type))
-            properties.remove(Constants.OSGI_BOOTDELEGATION); // remove the bootdelegation property in case it was set
+            properties.remove(Constants.FRAMEWORK_BOOTDELEGATION); // remove the bootdelegation property in case it was set
         // set the org.osgi.framework.executionenvironment property according to the java profile
         if (properties.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT) == null) {
             // get the ee from the java profile; if no ee is defined then try the java profile name
@@ -510,26 +510,26 @@ public final class BundleUtil {
         if (j2meConfig != null && j2meConfig.length() > 0 && j2meProfiles != null && j2meProfiles.length() > 0) {
             // save the vmProfile based off of the config and profile
             // use the last profile; assuming that is the highest one
-            String[] j2meProfileList = ManifestElement.getArrayFromList(j2meProfiles, " ");
+            String[] j2meProfileList = ManifestElement.getArrayFromList(j2meProfiles, " "); //$NON-NLS-1$
             if (j2meProfileList != null && j2meProfileList.length > 0)
                 vmProfile = j2meConfig + '_' + j2meProfileList[j2meProfileList.length - 1];
         } else {
             // No J2ME properties; use J2SE properties
             // Note that the CDC spec appears not to require VM implementations to set the
-            // javax.microedition properties!!  So we will try to fall back to the
+            // javax.microedition properties!!  So we will try to fall back to the 
             // java.specification.name property, but this is pretty ridiculous!!
-            String javaSpecVersion = properties.getProperty("java.specification.version");
+            String javaSpecVersion = properties.getProperty("java.specification.version"); //$NON-NLS-1$
             // set the profile and EE based off of the java.specification.version
             // TODO We assume J2ME Foundation and J2SE here.  need to support other profiles J2EE ...
             if (javaSpecVersion != null) {
-                StringTokenizer st = new StringTokenizer(javaSpecVersion, " _-");
+                StringTokenizer st = new StringTokenizer(javaSpecVersion, " _-"); //$NON-NLS-1$
                 javaSpecVersion = st.nextToken();
-                String javaSpecName = properties.getProperty("java.specification.name");
-                if ("J2ME Foundation Specification".equals(javaSpecName))
-                    vmProfile = "CDC-" + javaSpecVersion + "_Foundation-" + javaSpecVersion;  //$NON-NLS-2$
+                String javaSpecName = properties.getProperty("java.specification.name"); //$NON-NLS-1$
+                if ("J2ME Foundation Specification".equals(javaSpecName)) //$NON-NLS-1$
+                    vmProfile = "CDC-" + javaSpecVersion + "_Foundation-" + javaSpecVersion; //$NON-NLS-1$ //$NON-NLS-2$
                 else {
                     // look for JavaSE if 1.6 or greater; otherwise look for J2SE
-                    Version v16 = new Version("1.6");
+                    Version v16 = new Version("1.6"); //$NON-NLS-1$
                     javaEdition = J2SE;
                     try {
                         javaVersion = new Version(javaSpecVersion);
@@ -562,7 +562,7 @@ public final class BundleUtil {
         }
         if (url == null)
             // the profile url is still null then use the osgi min profile in OSGi by default
-            url = findInSystemBundle("OSGi_Minimum-1.1.profile");
+            url = findInSystemBundle("OSGi_Minimum-1.2.profile"); //$NON-NLS-1$
         if (url != null) {
             InputStream in = null;
             try {
@@ -585,7 +585,7 @@ public final class BundleUtil {
                 result.put(Constants.OSGI_JAVA_PROFILE_NAME, vmProfile.replace('_', '/'));
             else
                 // last resort; default to the absolute minimum profile name for the framework
-                result.put(Constants.OSGI_JAVA_PROFILE_NAME, "OSGi/Minimum-1.1");
+                result.put(Constants.OSGI_JAVA_PROFILE_NAME, "OSGi/Minimum-1.2"); //$NON-NLS-1$
         return result;
     }
 
@@ -603,7 +603,7 @@ public final class BundleUtil {
         URL result = null;
         int minor = javaVersion.getMinor();
         do {
-            result = findInSystemBundle(javaEdition + javaVersion.getMajor() + "." + minor + PROFILE_EXT);
+            result = findInSystemBundle(javaEdition + javaVersion.getMajor() + "." + minor + PROFILE_EXT); //$NON-NLS-1$
             minor = minor - 1;
         } while (result == null && minor > 0);
         return result;
@@ -613,6 +613,5 @@ public final class BundleUtil {
         ClassLoader loader = BundleUtil.class.getClassLoader();
         return loader == null ? ClassLoader.getSystemResource(entry) : loader.getResource(entry);
     }
-
 
 }

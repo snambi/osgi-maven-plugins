@@ -32,13 +32,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.eclipse.BuildCommand;
 import org.apache.maven.plugin.eclipse.Constants;
 import org.apache.maven.plugin.eclipse.EclipseSourceDir;
 import org.apache.maven.plugin.eclipse.Messages;
 import org.apache.maven.plugin.eclipse.writers.AbstractEclipseWriter;
-import org.apache.maven.plugin.eclipse.writers.EclipseAntExternalLaunchConfigurationWriter;
-import org.apache.maven.plugin.eclipse.writers.EclipseLaunchConfigurationWriter;
 import org.apache.maven.plugin.ide.IdeDependency;
 import org.apache.maven.plugin.ide.IdeUtils;
 import org.codehaus.plexus.util.IOUtil;
@@ -280,7 +277,7 @@ public class EclipseClasspathWriter
 
         }
 
-        /* --------------- Commented out by rfeng
+        /*
         // handle the special sources.
         if ( !specialSources.isEmpty() )
         {
