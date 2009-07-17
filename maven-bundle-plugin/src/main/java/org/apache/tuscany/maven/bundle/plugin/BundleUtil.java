@@ -170,8 +170,8 @@ final class BundleUtil {
                 String packageName = packageName(export);
                 if (!pkgs.contains(packageName)) {
                     // Add corresponding import declaration
-//                    imports.append(export);
-//                    imports.append(',');
+                    imports.append(export);
+                    imports.append(',');
                     pkgs.add(packageName);
                     exports.append(export);
                     exports.append(',');
