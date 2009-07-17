@@ -587,13 +587,17 @@ public class OSGiSurefirePlugin extends AbstractMojo {
             /*
              * Add org.apache.tuscany.sca:tuscany-extensibility-osgi module
              */
-            String aid = "tuscany-extensibility-equinox";
-            Artifact ext = getArtifact("org.apache.tuscany.sca", aid);
+            Artifact ext = getArtifact("org.apache.tuscany.sca", "tuscany-extensibility-equinox");
             if (log.isDebugEnabled()) {
                 log.debug("Adding: " + ext);
             }
             jarFiles.add(ext.getFile().getAbsolutePath());
 
+            Artifact con = getArtifact("org.apache.tuscany.sca", "tuscany-contribution-osgi");
+            if (log.isDebugEnabled()) {
+                log.debug("Adding: " + con);
+            }
+            jarFiles.add(con.getFile().getAbsolutePath());            
 
             String name = project.getBuild().getFinalName();
             String mainBundleName = null;
