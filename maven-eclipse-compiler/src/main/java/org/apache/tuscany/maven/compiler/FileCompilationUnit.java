@@ -31,7 +31,7 @@ import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
 /**
  * An implementation of ICompilationUnit that wraps a File.
  *
- * @version $Rev: $ $Date: $
+ * @version $Rev$ $Date$
  */
 class FileCompilationUnit implements ICompilationUnit {
     private final static char fileSeparator = System.getProperty("file.separator").charAt(0);

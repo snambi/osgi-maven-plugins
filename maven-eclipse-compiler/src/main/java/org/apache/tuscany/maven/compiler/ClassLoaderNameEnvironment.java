@@ -36,7 +36,7 @@ import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 /**
  * An implementation of INameEnvironment based on a ClassLoader.
  * 
- * @version $Rev: $ $Date: $
+ * @version $Rev$ $Date$
  */
 class ClassLoaderNameEnvironment implements INameEnvironment {
     private final static char fileSeparator = System.getProperty("file.separator").charAt(0);

@@ -62,7 +62,7 @@ import org.osgi.framework.BundleException;
 /**
  * A custom Plexus Java compiler plugin that uses the Eclipse compiler.
  *
- * @version $Rev: $ $Date: $
+ * @version $Rev$ $Date$
  */
 public class JavaCompiler extends AbstractCompiler {
 
