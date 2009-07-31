@@ -60,6 +60,7 @@ import org.osgi.framework.Version;
  * @version $Rev$ $Date$
  */
 final class BundleUtil {
+    static final String META_INF_SERVICES = "META-INF.services;partial=true;mandatory:=partial";
     private final static Logger logger = Logger.getLogger(BundleUtil.class.getName());
     /**
      * Returns the name of a bundle, or null if the given file is not a bundle.
@@ -321,7 +322,7 @@ final class BundleUtil {
             String entryName = entry.getName();
             // Export split packages for META-INF/services
             if(entryName.startsWith("META-INF/services/")) {
-                packages.add("META-INF.services" + ";partial=true;mandatory:=partial");
+                packages.add(META_INF_SERVICES);
             }
             if (!entry.isDirectory() && entryName != null
                 && entryName.length() > 0

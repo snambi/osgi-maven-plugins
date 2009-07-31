@@ -689,7 +689,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
     private static boolean isServiceProvider(Manifest mf) {
         if (mf != null) {
             String export = (String)mf.getMainAttributes().getValue(Constants.EXPORT_PACKAGE);
-            if (export != null && export.contains("META-INF.services")) {
+            if (export != null && export.contains(BundleUtil.META_INF_SERVICES)) {
                 return true;
             }
         }
