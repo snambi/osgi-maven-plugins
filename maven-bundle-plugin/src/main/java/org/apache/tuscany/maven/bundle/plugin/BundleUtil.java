@@ -198,9 +198,11 @@ final class BundleUtil {
             if (exports.length() > 1) {
                 attributes.putValue(EXPORT_PACKAGE, exports.substring(0, exports.length() - 1));
             }
+            /*
             if (imports.length() > 1) {
                 attributes.putValue(IMPORT_PACKAGE, imports.substring(0, imports.length() - 1));
             }
+            */
             if (classpath.length() > 1) {
                 attributes.putValue(BUNDLE_CLASSPATH, classpath.substring(0, classpath.length() - 1));
             }
@@ -242,12 +244,12 @@ final class BundleUtil {
      * @throws IOException
      */
     private static void addPackages(File jarFile, Set<String> packages, String version) throws IOException {
-        if (getBundleSymbolicName(jarFile) == null) {
+//        if (getBundleSymbolicName(jarFile) == null) {
             String ver = ";version=" + version;
             addAllPackages(jarFile, packages, ver);
-        } else {
-            addExportedPackages(jarFile, packages);
-        }
+//        } else {
+//            addExportedPackages(jarFile, packages);
+//        }
     }
 
     /**
