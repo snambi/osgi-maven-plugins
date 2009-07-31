@@ -170,8 +170,10 @@ final class BundleUtil {
                 String packageName = packageName(export);
                 if (!pkgs.contains(packageName)) {
                     // Add corresponding import declaration
-                    imports.append(export);
-                    imports.append(',');
+                    if (!"META-INF.services".equals(packageName)) {
+                        imports.append(export);
+                        imports.append(',');
+                    }
                     pkgs.add(packageName);
                     exports.append(export);
                     exports.append(',');
@@ -188,7 +190,8 @@ final class BundleUtil {
             attributes.putValue(BUNDLE_SYMBOLICNAME, symbolicName);
             attributes.putValue(BUNDLE_NAME, name);
             attributes.putValue(BUNDLE_VERSION, version);
-            attributes.putValue(DYNAMICIMPORT_PACKAGE, "*");
+            // The system bundle has incomplete javax.transaction* packages exported
+            attributes.putValue(DYNAMICIMPORT_PACKAGE, "javax.transaction;version=\"1.1\",javax.transaction.xa;version=\"1.1\",*");
             if (buddyPolicy != null && buddyPolicy.length() > 0){
             	attributes.putValue("Eclipse-BuddyPolicy", buddyPolicy);
             }
@@ -314,6 +317,10 @@ final class BundleUtil {
         ZipEntry entry;
         while ((entry = is.getNextEntry()) != null) {
             String entryName = entry.getName();
+            // Export split packages for META-INF/services
+            if(entryName.startsWith("META-INF/services/")) {
+                packages.add("META-INF.services" + ";partial=true;mandatory:=partial");
+            }
             if (!entry.isDirectory() && entryName != null
                 && entryName.length() > 0
                 && !entryName.startsWith(".")

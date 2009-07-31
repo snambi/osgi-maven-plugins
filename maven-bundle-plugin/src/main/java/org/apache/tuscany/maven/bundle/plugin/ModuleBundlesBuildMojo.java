@@ -21,6 +21,10 @@ package org.apache.tuscany.maven.bundle.plugin;
 import static org.apache.tuscany.maven.bundle.plugin.BundleUtil.write;
 import static org.osgi.framework.Constants.BUNDLE_CLASSPATH;
 import static org.osgi.framework.Constants.BUNDLE_VERSION;
+import static org.osgi.framework.Constants.RESOLUTION_DIRECTIVE;
+import static org.osgi.framework.Constants.RESOLUTION_OPTIONAL;
+import static org.osgi.framework.Constants.VISIBILITY_DIRECTIVE;
+import static org.osgi.framework.Constants.VISIBILITY_REEXPORT;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -56,6 +60,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.artifact.InvalidDependencyVersionException;
+import org.osgi.framework.Constants;
 
 /**
  * A maven plugin that generates a modules directory containing OSGi bundles for all the project's module dependencies.
@@ -67,6 +72,8 @@ import org.apache.maven.project.artifact.InvalidDependencyVersionException;
  * @description Generate a modules directory containing OSGi bundles for all the project's module dependencies.
  */
 public class ModuleBundlesBuildMojo extends AbstractMojo {
+
+    private static final String GATEWAY_BUNDLE = "org.apache.tuscany.sca.gateway";
 
     /**
      * The project to create a distribution for.
@@ -194,6 +201,18 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
      * @parameter default-value="true"
      */
     private boolean useDefaultLocation = true;
+
+    /**
+     * Set to true to generate a gateway bundle tuscany-gateway-<version>.jar that handles split packages and META-INF/services.
+     *
+     *  @parameter default-value="true"
+     */
+    private boolean generateGatewayBundle;
+
+    /**
+     * @parameter default-value="false"
+     */
+    private boolean gatewayReexport;
 
     /**
      * Set to true to generate a plugin.xml.
@@ -325,7 +344,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                     getLog().info("MANIFEST.MF found for " + artifact + " (" + mf + ")");
                     return manifest;
                 } else {
-                    getLog().info("Overriding the manifest for "+artifact);
+                    getLog().info("Overriding the manifest for " + artifact);
                     Manifest manifest = BundleUtil.getManifest(artifact.getFile());
                     Set<File> jarFiles = new HashSet<File>();
                     jarFiles.add(artifact.getFile());
@@ -410,6 +429,8 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
             ProjectSet bundleSymbolicNames = new ProjectSet(poms);
             ProjectSet bundleLocations = new ProjectSet(poms);
             ProjectSet jarNames = new ProjectSet(poms);
+            ProjectSet serviceProviders = new ProjectSet(poms);
+            
             for (Object o : project.getArtifacts()) {
                 Artifact artifact = (Artifact)o;
 
@@ -479,6 +500,9 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                         bundleSymbolicNames.add(artifact, bundleName);
                         bundleLocations.add(artifact, artifactFile.getName());
                         jarNames.add(artifact, artifactFile.getName());
+                        if (isServiceProvider(mf)) {
+                            serviceProviders.add(artifact, bundleName);
+                        }
                     } else {
                         // Expanding the bundle into a folder
 
@@ -499,6 +523,9 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                         bundleSymbolicNames.add(artifact, bundleName);
                         bundleLocations.add(artifact, dir.getName());
                         jarNames.add(artifact, dirName + "/" + artifactFile.getName());
+                        if (isServiceProvider(mf)) {
+                            serviceProviders.add(artifact, bundleName);
+                        }
                     }
 
                 } else if ("war".equals(artifact.getType())) {
@@ -576,6 +603,9 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                     bundleSymbolicNames.add(artifact, symbolicName);
                     bundleLocations.add(artifact, dir.getName());
                     jarNames.add(artifact, dirName + "/" + artifactFile.getName());
+                    if (isServiceProvider(mf)) {
+                        serviceProviders.add(artifact, symbolicName);
+                    }
                 }
             }
 
@@ -614,7 +644,14 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                     fos.close();
                     bundleSymbolicNames.add(artifact, symbolicName);
                     bundleLocations.add(artifact, dir.getName());
+                    if (isServiceProvider(mf)) {
+                        serviceProviders.add(artifact, symbolicName);
+                    }
                 }
+            }
+
+            if (generateGatewayBundle) {
+                generateGatewayBundle(serviceProviders);
             }
 
             // Generate a PDE target
@@ -647,6 +684,59 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
             throw new MojoExecutionException(e.getMessage(), e);
         }
 
+    }
+    
+    private static boolean isServiceProvider(Manifest mf) {
+        if (mf != null) {
+            String export = (String)mf.getMainAttributes().getValue(Constants.EXPORT_PACKAGE);
+            if (export != null && export.contains("META-INF.services")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Generate a gateway bundle that aggregate other bundles to handle split packages
+     * @param bundleSymbolicNames
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    private void generateGatewayBundle(ProjectSet bundleSymbolicNames) throws FileNotFoundException, IOException {
+        Manifest manifest = new Manifest();
+        Attributes attrs = manifest.getMainAttributes();
+        StringBuffer requireBundle = new StringBuffer();
+        for (String name : new HashSet<String>(bundleSymbolicNames.artifactToNameMap.values())) {
+            requireBundle.append(name).append(";").append(RESOLUTION_DIRECTIVE).append(":=")
+                .append(RESOLUTION_OPTIONAL);
+            if (gatewayReexport) {
+                requireBundle.append(";").append(VISIBILITY_DIRECTIVE).append(":=").append(VISIBILITY_REEXPORT);
+            }
+            requireBundle.append(",");
+        }
+        int len = requireBundle.length();
+        if (len > 0 && requireBundle.charAt(len - 1) == ',') {
+            requireBundle.deleteCharAt(len - 1);
+            attrs.putValue(Constants.REQUIRE_BUNDLE, requireBundle.toString());
+            attrs.putValue("Manifest-Version", "1.0");
+            attrs.putValue("Implementation-Vendor", "The Apache Software Foundation");
+            attrs.putValue("Implementation-Vendor-Id", "org.apache");
+            attrs.putValue(Constants.BUNDLE_VERSION, "2.0.0");
+            attrs.putValue(Constants.BUNDLE_MANIFESTVERSION, "2");
+            attrs.putValue(Constants.BUNDLE_SYMBOLICNAME, GATEWAY_BUNDLE);
+            attrs.putValue(Constants.BUNDLE_NAME, "Apache Tuscany SCA Gateway Bundle");
+            attrs.putValue(Constants.BUNDLE_VENDOR, "The Apache Software Foundation");
+            attrs.putValue(Constants.EXPORT_PACKAGE, "META-INF.services");
+            attrs.putValue(Constants.DYNAMICIMPORT_PACKAGE, "*");
+            attrs.putValue(Constants.BUNDLE_ACTIVATIONPOLICY, Constants.ACTIVATION_LAZY);
+            File file = new File(targetDirectory, "tuscany-gateway-" + project.getVersion() + ".jar");
+            getLog().info("Generating gateway bundle: " + file.getAbsolutePath());
+            FileOutputStream fos = new FileOutputStream(file);
+            JarOutputStream jos = new JarOutputStream(fos, manifest);
+            addFileToJar(jos, "META-INF/LICENSE", getClass().getResource("LICENSE.txt"));
+            addFileToJar(jos, "META-INF/NOTICE", getClass().getResource("NOTICE.txt"));
+            jos.close();
+        }
     }
 
     private void setBundleClassPath(Manifest mf, File artifactFile) {
@@ -766,7 +856,10 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
 
     private void generateEquinoxConfig(ProjectSet bundleLocations, File root, Log log) throws IOException {
         for (Map.Entry<String, Set<String>> e : bundleLocations.nameMap.entrySet()) {
-            Set<String> locations = e.getValue();
+            Set<String> locations = new HashSet<String>(e.getValue());
+            if (generateGatewayBundle) {
+                locations.add("tuscany-gateway-" + project.getVersion() + ".jar");
+            }
             File feature = new File(root, "../" + featuresName + "/" + (useDistributionName ? trim(e.getKey()) : ""));
             File config = new File(feature, "configuration");
             config.mkdirs();
@@ -807,7 +900,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
     private void generatePDETarget(ProjectSet bundleSymbolicNames, File root, Log log) throws FileNotFoundException,
         IOException {
         for (Map.Entry<String, Set<String>> e : bundleSymbolicNames.nameMap.entrySet()) {
-            Set<String> bundles = e.getValue();
+            Set<String> bundles = new HashSet<String>(e.getValue());
             String name = trim(e.getKey());
             File feature = new File(root, "../" + featuresName + "/" + (useDistributionName ? name : ""));
             feature.mkdirs();
@@ -816,6 +909,9 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
             FileOutputStream targetFile = new FileOutputStream(target);
             if (!bundles.contains("org.eclipse.osgi")) {
                 bundles.add("org.eclipse.osgi");
+            }
+            if (generateGatewayBundle) {
+                bundles.add(GATEWAY_BUNDLE);
             }
             writeTarget(new PrintStream(targetFile), name, bundles, eclipseFeatures);
             targetFile.close();
