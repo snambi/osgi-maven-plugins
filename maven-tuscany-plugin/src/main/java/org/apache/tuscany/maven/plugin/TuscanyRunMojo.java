@@ -78,7 +78,7 @@ public class TuscanyRunMojo extends AbstractMojo {
         Contribution contribution = getProjectContribution();
         // TODO allow specifying dependent contributions
 
-        Node node = NodeFactory.newInstance().createNode(null, contribution);
+        Node node = NodeFactory.newInstance().createNode(contribution);
         node.start();
 
         waitForShutdown(node, getLog());
