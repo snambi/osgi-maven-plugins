@@ -49,10 +49,14 @@ import java.util.zip.ZipEntry;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.ArtifactUtils;
 import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
+import org.apache.maven.artifact.resolver.ArtifactCollector;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
+import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
+import org.apache.maven.artifact.versioning.ArtifactVersion;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -60,6 +64,10 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.artifact.InvalidDependencyVersionException;
+import org.apache.maven.shared.dependency.tree.DependencyNode;
+import org.apache.maven.shared.dependency.tree.DependencyTreeBuilder;
+import org.apache.maven.shared.dependency.tree.DependencyTreeBuilderException;
+import org.apache.maven.shared.dependency.tree.traversal.CollectingDependencyNodeVisitor;
 import org.osgi.framework.Constants;
 
 /**
@@ -113,6 +121,25 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
      * @readonly
      */
     private ArtifactMetadataSource artifactMetadataSource;
+
+    /**
+     * The artifact collector to use.
+     * 
+     * @component
+     * @required
+     * @readonly
+     */
+    private ArtifactCollector artifactCollector;
+    
+    /**
+     * The dependency tree builder to use.
+     * 
+     * @component
+     * @required
+     * @readonly
+     */
+    private DependencyTreeBuilder dependencyTreeBuilder;
+
 
     /**
      * Location of the local repository.
@@ -231,6 +258,11 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
      * @parameter default-value="true"
      */
     private boolean generateBundleStart = true;
+    
+    /**
+     * @parameter default-value="true"
+     */
+    private boolean includeConflictingDepedencies = true;
 
     /**
      * Generete manifest.jar
@@ -370,9 +402,40 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
         }
         return null;
     }
+    
+    /**
+     * Gets the artifact filter to use when resolving the dependency tree.
+     * 
+     * @return the artifact filter
+     */
+    private ArtifactFilter createResolvingArtifactFilter(String scope) {
+        ArtifactFilter filter;
+
+        // filter scope
+        if (scope != null) {
+            getLog().debug("+ Resolving dependency tree for scope '" + scope + "'");
+
+            filter = new ScopeArtifactFilter(scope);
+        } else {
+            filter = null;
+        }
+
+        return filter;
+    }
 
     public void execute() throws MojoExecutionException {
         Log log = getLog();
+        
+        Set<Artifact> artifacts = null;
+        if (includeConflictingDepedencies) {
+            try {
+                artifacts = getDependencyArtifacts(project);
+            } catch (Exception e) {
+                throw new MojoExecutionException(e.getMessage(), e);
+            }
+        } else {
+            artifacts = project.getArtifacts();
+        }
 
         try {
 
@@ -431,8 +494,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
             ProjectSet jarNames = new ProjectSet(poms);
             ProjectSet serviceProviders = new ProjectSet(poms);
             
-            for (Object o : project.getArtifacts()) {
-                Artifact artifact = (Artifact)o;
+            for (Artifact artifact: artifacts) {
 
                 // Only consider Compile and Runtime dependencies
                 if (!(Artifact.SCOPE_COMPILE.equals(artifact.getScope()) || Artifact.SCOPE_RUNTIME.equals(artifact
@@ -685,6 +747,60 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
         }
 
     }
+
+    private Set<Artifact> getDependencyArtifacts(MavenProject project) throws DependencyTreeBuilderException,
+        ArtifactResolutionException, ArtifactNotFoundException {
+        Log log = getLog();
+        Set<Artifact> artifacts = new HashSet<Artifact>();
+        ArtifactFilter artifactFilter = createResolvingArtifactFilter(Artifact.SCOPE_RUNTIME);
+
+        // TODO: note that filter does not get applied due to MNG-3236
+
+        DependencyNode rootNode =
+            dependencyTreeBuilder.buildDependencyTree(project,
+                                                      local,
+                                                      factory,
+                                                      artifactMetadataSource,
+                                                      artifactFilter,
+                                                      artifactCollector);
+        CollectingDependencyNodeVisitor visitor = new CollectingDependencyNodeVisitor();
+        rootNode.accept(visitor);
+        // Add included artifacts
+        for (Object node : visitor.getNodes()) {
+            DependencyNode depNode = (DependencyNode)node;
+            int state = depNode.getState();
+            if (state == DependencyNode.INCLUDED ) {
+                Artifact artifact = depNode.getArtifact();
+                resolver.resolve(artifact, remoteRepos, local);
+                artifacts.add(artifact);
+            }
+        }
+        // Scan for newer versions that are omitted
+        for (Object node : visitor.getNodes()) {
+            DependencyNode depNode = (DependencyNode)node;
+            int state = depNode.getState();
+            if (state == DependencyNode.OMITTED_FOR_CONFLICT) {
+                Artifact artifact = depNode.getArtifact();
+                resolver.resolve(artifact, remoteRepos, local);
+                if (state == DependencyNode.OMITTED_FOR_CONFLICT) {
+                    Artifact related = depNode.getRelatedArtifact();
+                    if (log.isDebugEnabled()) {
+                        log.debug("Dependency node: " + depNode);
+                    }
+                    // Compare the version
+                    ArtifactVersion v1 = new DefaultArtifactVersion(artifact.getVersion());
+                    ArtifactVersion v2 = new DefaultArtifactVersion(related.getVersion());
+                    if (v1.compareTo(v2) > 0) {
+                        // Only add newer version if it is omitted for conflict
+                        if (artifacts.add(artifact)) {
+                            log.info("Dependency node added: " + depNode);
+                        }
+                    }
+                }
+            }
+        }
+        return artifacts;
+    }
     
     private static boolean isServiceProvider(Manifest mf) {
         if (mf != null) {
@@ -927,19 +1043,23 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
     }
 
     private MavenProject buildProject(Artifact artifact) throws ProjectBuildingException,
-        InvalidDependencyVersionException, ArtifactResolutionException, ArtifactNotFoundException {
+        InvalidDependencyVersionException, ArtifactResolutionException, ArtifactNotFoundException, DependencyTreeBuilderException {
         MavenProject pomProject = mavenProjectBuilder.buildFromRepository(artifact, this.remoteRepos, this.local);
         if (pomProject.getDependencyArtifacts() == null) {
             pomProject.setDependencyArtifacts(pomProject.createArtifacts(factory, null, // Artifact.SCOPE_TEST,
                                                                          new ScopeArtifactFilter(Artifact.SCOPE_TEST)));
         }
-        ArtifactResolutionResult result =
-            resolver.resolveTransitively(pomProject.getDependencyArtifacts(),
-                                         pomProject.getArtifact(),
-                                         remoteRepos,
-                                         local,
-                                         artifactMetadataSource);
-        pomProject.setArtifacts(result.getArtifacts());
+        if (includeConflictingDepedencies) {
+            pomProject.setArtifacts(getDependencyArtifacts(pomProject));
+        } else {
+            ArtifactResolutionResult result =
+                resolver.resolveTransitively(pomProject.getDependencyArtifacts(),
+                                             pomProject.getArtifact(),
+                                             remoteRepos,
+                                             local,
+                                             artifactMetadataSource);
+            pomProject.setArtifacts(result.getArtifacts());
+        }
         return pomProject;
     }
 
