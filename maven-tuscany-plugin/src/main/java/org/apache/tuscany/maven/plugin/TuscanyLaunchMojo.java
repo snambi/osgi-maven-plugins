@@ -30,7 +30,7 @@ import org.apache.tuscany.sca.node.DomainNode;
 
 /**
  * Maven Mojo to launch a Tuscany runtime
- * Invoked with mvn org.apache.tuscany.maven.plugin:tuscany-launch-plugin:launch [-Ddomain=tribes:myDomain] -Dcontributions=path\to\scacontribution
+ * Invoked with mvn org.apache.tuscany.maven.plugin:maven-tuscany-plugin:launch [-Ddomain=tribes:myDomain] -Dcontributions=path\to\scacontribution
  * 
  * @goal launch
  * @requiresProject false
