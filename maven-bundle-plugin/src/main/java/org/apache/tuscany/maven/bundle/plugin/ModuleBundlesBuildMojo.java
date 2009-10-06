@@ -765,14 +765,18 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                                                       artifactCollector);
         CollectingDependencyNodeVisitor visitor = new CollectingDependencyNodeVisitor();
         rootNode.accept(visitor);
+        
         // Add included artifacts
         for (Object node : visitor.getNodes()) {
             DependencyNode depNode = (DependencyNode)node;
             int state = depNode.getState();
             if (state == DependencyNode.INCLUDED ) {
                 Artifact artifact = depNode.getArtifact();
-                resolver.resolve(artifact, remoteRepos, local);
-                artifacts.add(artifact);
+                // Exclude the project artifact to avoid offline resolution failure
+                if (!artifact.equals(project.getArtifact())) {
+                    resolver.resolve(artifact, remoteRepos, local);
+                    artifacts.add(artifact);
+                }
             }
         }
         // Scan for newer versions that are omitted
