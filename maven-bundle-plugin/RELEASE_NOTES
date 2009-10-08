@@ -1,3 +1,21 @@
+Apache Tuscany Maven Bundle Plugin 1.0.4 Release Notes
+======================================================
+
+- Exclude the project itself from the resolution so that it can be built offline
+- Add support to include different versions of 3rd party jars into the distribution if it is omitted by a lower version in maven
+- Check the partial attr to decide if the bundle needs to be required
+- Don't generate Import-Package header for the 3rd party jars so that either local package is used if there are split packages
+- Add the option to generate a gateway bundle that aggregates split packages and export them
+- Fix svn:eol-style and svn:keywords properties for java/xml files
+- Add import statement for the generated MF
+- Upgrade to Equinox 3.5
+
+Apache Tuscany Maven Bundle Plugin 1.0.3 Release Notes
+======================================================
+
+Apache Tuscany Maven Bundle Plugin 1.0.2 Release Notes
+======================================================
+
 Apache Tuscany Maven Bundle Plugin 1.0.1 Release Notes
 ======================================================
 
