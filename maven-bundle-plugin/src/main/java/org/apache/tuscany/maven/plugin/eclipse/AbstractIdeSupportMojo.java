@@ -31,10 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import java.util.zip.ZipFile;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
@@ -65,6 +62,7 @@ import org.apache.maven.plugin.eclipse.Messages;
 import org.apache.maven.plugin.ide.IdeDependency;
 import org.apache.maven.plugin.ide.IdeUtils;
 import org.apache.maven.project.MavenProject;
+import org.apache.tuscany.maven.bundle.plugin.BundleUtil;
 import org.codehaus.plexus.logging.LogEnabled;
 import org.codehaus.plexus.logging.Logger;
 
@@ -541,6 +539,12 @@ public abstract class AbstractIdeSupportMojo
             if ( resolveDependencies )
             {
                 MavenProject project = getProject();
+                Set<String> imported = Collections.emptySet();
+                try {
+                    imported = BundleUtil.getImportedPackages(project.getBasedir());
+                } catch (IOException e1) {
+                    throw new MojoExecutionException(e1.getMessage(), e1);
+                }
                 ArtifactRepository localRepo = getLocalRepository();
 
                 List deps = getProject().getDependencies();
@@ -651,44 +655,21 @@ public abstract class AbstractIdeSupportMojo
                             // we need to check the manifest, if "Bundle-SymbolicName" is there the artifact can be
                             // considered
                             // an osgi bundle
+                            if ("pom".equals(art.getType())) {
+                                continue;
+                            }
+                            File artifactFile = art.getFile();
+                            MavenProject reactorProject = getReactorProject(art);
+                            if (reactorProject != null) {
+                                artifactFile = reactorProject.getBasedir();
+                            }
                             boolean isOsgiBundle = false;
                             String osgiSymbolicName = null;
-                            if ( art.getFile() != null )
-                            {
-                                JarFile jarFile = null;
-                                try
-                                {
-                                    jarFile = new JarFile( art.getFile(), false, ZipFile.OPEN_READ );
-
-                                    Manifest manifest = jarFile.getManifest();
-                                    if ( manifest != null )
-                                    {
-                                        osgiSymbolicName =
-                                            manifest.getMainAttributes().getValue(
-                                                                                   new Attributes.Name(
-                                                                                                        "Bundle-SymbolicName" ) );
-                                    }
-                                }
-                                catch ( IOException e )
-                                {
-                                    getLog().info( "Unable to read jar manifest from " + art.getFile() );
-                                }
-                                finally
-                                {
-                                    if ( jarFile != null )
-                                    {
-                                        try
-                                        {
-                                            jarFile.close();
-                                        }
-                                        catch ( IOException e )
-                                        {
-                                            // ignore
-                                        }
-                                    }
-                                }
+                            try {
+                                osgiSymbolicName = BundleUtil.getBundleSymbolicName(artifactFile);
+                            } catch (IOException e) {
+                                getLog().error("Unable to read jar manifest from " + artifactFile, e);
                             }
-
                             isOsgiBundle = osgiSymbolicName != null;
 
                             IdeDependency dep =
@@ -707,6 +688,31 @@ public abstract class AbstractIdeSupportMojo
                                 if (!(pde && (Artifact.SCOPE_COMPILE.equals(art.getScope()) || Artifact.SCOPE_PROVIDED
                                     .equals(art.getScope())))) {
                                     dependencies.add( dep );
+                                } else {
+                                    // Check this compile dependency is an OSGi package supplier
+                                    if (!imported.isEmpty()) {
+                                        Set<String> exported = Collections.emptySet();
+                                        try {
+                                            exported = BundleUtil.getExportedPackages(artifactFile);
+                                        } catch (IOException e) {
+                                            getLog().error("Unable to read jar manifest from " + art.getFile(), e);
+                                        }
+                                        boolean matched = false;
+                                        for (String p : imported) {
+                                            if (exported.contains(p)) {
+                                                matched = true;
+                                                break;
+                                            }
+                                        }
+                                        if (!matched) {
+                                            dependencies.add(dep);
+                                        } else {
+                                            getLog()
+                                                .debug("Compile dependency is skipped as it is added through OSGi dependency: " + art);
+                                        }
+                                    } else {
+                                        dependencies.add(dep);
+                                    }
                                 }
                             }
                         }

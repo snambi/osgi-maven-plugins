@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -59,7 +60,7 @@ import org.osgi.framework.Version;
  *
  * @version $Rev$ $Date$
  */
-final class BundleUtil {
+public final class BundleUtil {
     static final String META_INF_SERVICES = "META-INF.services;partial=true;mandatory:=partial";
     private final static Logger logger = Logger.getLogger(BundleUtil.class.getName());
     /**
@@ -69,7 +70,7 @@ final class BundleUtil {
      * @return
      * @throws IOException
      */
-    static String getBundleSymbolicName(File file) throws IOException {
+    public static String getBundleSymbolicName(File file) throws IOException {
         Manifest manifest = getManifest(file);
         return getBundleSymbolicName(manifest);
     }
@@ -376,37 +377,68 @@ final class BundleUtil {
      * @return
      * @throws IOException
      */
-    private static void addExportedPackages(File file, Set<String> packages) throws IOException {
+    public static Set<String> getExportedPackages(File file) throws IOException {
         if (!file.exists()) {
-            return;
+            return Collections.emptySet();
         }
+
+        Set<String> packages = new HashSet<String>();
+        Manifest manifest = getManifest(file);
 
         // Read the export-package declaration and get a list of the packages available in a JAR
-        Set<String> existingPackages = null;
+        String bundleName = null;
         String exports = null;
-        if (file.isDirectory()) {
-            File mf = new File(file, "META-INF/MANIFEST.MF");
-            if (mf.isFile()) {
-                Manifest manifest = new Manifest(new FileInputStream(mf));
-                exports = manifest.getMainAttributes().getValue(EXPORT_PACKAGE);
-            }
-        } else {
-            JarFile jar = new JarFile(file, false);
-            Manifest manifest = jar.getManifest();
+
+        if (manifest != null) {
             exports = manifest.getMainAttributes().getValue(EXPORT_PACKAGE);
-            jar.close();
-            existingPackages = new HashSet<String>();
-            addAllPackages(file, existingPackages, "");
-        }
-        if (exports == null) {
-            return;
+            bundleName = manifest.getMainAttributes().getValue(BUNDLE_SYMBOLICNAME);
         }
 
+        if (bundleName == null) {
+            Set<String> allPackages = new HashSet<String>();
+            addAllPackages(file, allPackages, "");
+            for (String p : allPackages) {
+                packages.add(packageName(p));
+            }
+            return packages;
+        }
+
+        packages.addAll(parsePackages(exports));
+
+        return packages;
+    }
+    
+    public static Set<String> getImportedPackages(File file) throws IOException {
+        if (!file.exists()) {
+            return Collections.emptySet();
+        }
+
+        Manifest manifest = getManifest(file);
+
+        // Read the export-package declaration and get a list of the packages available in a JAR
+        String bundleName = null;
+        String imports = null;
+
+        if (manifest != null) {
+            imports = manifest.getMainAttributes().getValue(IMPORT_PACKAGE);
+            bundleName = manifest.getMainAttributes().getValue(BUNDLE_SYMBOLICNAME);
+            if (imports != null && bundleName != null) {
+                return parsePackages(imports);
+            }
+        }
+        return Collections.emptySet();
+    }
+
+    private static Set<String> parsePackages(String header) {
+        if (header == null) {
+            return Collections.emptySet();
+        }
+        Set<String> packages = new HashSet<String>();
         // Parse the export-package declaration, and extract the individual packages
         StringBuffer buffer = new StringBuffer();
         boolean q = false;
-        for (int i = 0, n = exports.length(); i < n; i++) {
-            char c = exports.charAt(i);
+        for (int i = 0, n = header.length(); i < n; i++) {
+            char c = header.charAt(i);
             if (c == '\"') {
                 q = !q;
             }
@@ -416,9 +448,7 @@ final class BundleUtil {
                     // Add the exported package to the set, after making sure it really exists in
                     // the JAR
                     String export = buffer.toString();
-                    if (existingPackages == null || existingPackages.contains(packageName(export))) {
-                        packages.add(stripExport(export));
-                    }
+                    packages.add(packageName(export));
                     buffer = new StringBuffer();
                     continue;
                 }
@@ -426,14 +456,10 @@ final class BundleUtil {
             buffer.append(c);
         }
         if (buffer.length() != 0) {
-
-            // Add the exported package to the set, after making sure it really exists in
-            // the JAR
             String export = buffer.toString();
-            if (existingPackages == null || existingPackages.contains(packageName(export))) {
-                packages.add(stripExport(export));
-            }
+            packages.add(packageName(export));
         }
+        return packages;
     }
 
     /**
