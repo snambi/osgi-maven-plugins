@@ -1,6 +1,7 @@
 Apache Tuscany Maven Bundle Plugin 1.0.4 Release Notes
 ======================================================
 
+- Add compile dependencies to the .classpath file if it doesn't supply any packages to the OSGi import. This maks this plugin more closer to the mvn eclipse:eclipse behavior. 
 - Exclude the project itself from the resolution so that it can be built offline
 - Add support to include different versions of 3rd party jars into the distribution if it is omitted by a lower version in maven
 - Check the partial attr to decide if the bundle needs to be required
