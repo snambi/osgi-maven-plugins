@@ -26,7 +26,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
-import org.apache.tuscany.sca.node.DomainNode;
+import org.apache.tuscany.sca.domain.node.DomainNode;
 
 /**
  * Maven Mojo to launch a Tuscany runtime
