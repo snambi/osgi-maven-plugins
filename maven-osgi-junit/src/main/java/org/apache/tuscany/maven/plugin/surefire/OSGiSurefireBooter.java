@@ -26,6 +26,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -57,7 +58,6 @@ import org.apache.maven.surefire.booter.shade.org.codehaus.plexus.util.cli.Comma
 import org.apache.maven.surefire.booter.shade.org.codehaus.plexus.util.cli.StreamConsumer;
 import org.apache.maven.surefire.testset.TestSetFailedException;
 import org.apache.maven.surefire.util.NestedRuntimeException;
-import org.apache.tuscany.sca.node.equinox.launcher.EquinoxHost;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
@@ -273,7 +273,11 @@ public class OSGiSurefireBooter {
 
         // noinspection CatchGenericClass,OverlyBroadCatchBlock
         ClassLoader oldContextClassLoader = Thread.currentThread().getContextClassLoader();
-        start();
+        try {
+            start();
+        } catch (Exception e1) {
+            throw new SurefireExecutionException(e1.getMessage(), e1);
+        }
         try {
             ClassLoader testsClassLoader =
                 useSystemClassLoader() ? ClassLoader.getSystemClassLoader() : createClassLoader(classPathUrls,
@@ -314,7 +318,11 @@ public class OSGiSurefireBooter {
 
         // noinspection CatchGenericClass,OverlyBroadCatchBlock
         ClassLoader oldContextClassLoader = Thread.currentThread().getContextClassLoader();
-        start();
+        try {
+            start();
+        } catch (Exception e1) {
+            throw new SurefireExecutionException(e1.getMessage(), e1);
+        }
 
         try {
             // The test classloader must be constructed first to avoid issues with commons-logging until we properly
@@ -894,10 +902,10 @@ public class OSGiSurefireBooter {
         this.mainBundleName = mainBundleName;
     }
 
-    private EquinoxHost host;
+    private Object host;
     private BundleClassLoader bundleClassLoader;
 
-    public EquinoxHost start() {
+    public Object start() throws Exception {
         Set<URL> urls = new HashSet<URL>();
         
         // Merge the two classpaths so that all of them will be OSGi-enabled
@@ -915,8 +923,8 @@ public class OSGiSurefireBooter {
             }
         }
 
-        host = new EquinoxHost(urls);
-        BundleContext context = host.start();
+        host = createEquinox(urls);
+        BundleContext context = startEquinox(host);
         Bundle mainBundle = null;
         for (Bundle bundle : context.getBundles()) {
             // Fragement bundle cannot be used to load class, use the main bundle
@@ -943,10 +951,31 @@ public class OSGiSurefireBooter {
 
     public void stop() {
         if (host != null) {
-            host.stop();
+            try {
+                stopEquinox(host);
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
             host = null;
             bundleClassLoader = null;
         }
+    }
+    
+    private static Object createEquinox(Set<URL> urls) throws Exception {
+        String name = "org.apache.tuscany.sca.node.equinox.launcher.EquinoxHost";
+        Class<?> cls = Class.forName(name);
+        Constructor<?> ctor = cls.getConstructor(Set.class);
+        return ctor.newInstance(urls);
+    }
+
+    private static BundleContext startEquinox(Object host) throws Exception {
+        Method start = host.getClass().getMethod("start");
+        return (BundleContext)start.invoke(host);
+    }
+
+    private static void stopEquinox(Object host) throws Exception {
+        Method stop = host.getClass().getMethod("stop");
+        stop.invoke(host);
     }
 
     /**
