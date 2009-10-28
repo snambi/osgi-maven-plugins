@@ -1,7 +1,41 @@
-Apache Tuscany Maven Tuscany Plugin Alpha1 Release Notes
+Apache Tuscany Maven Tuscany Plugin 2.0-M4 Release Notes
 ========================================================
 
 Initial release
 
-This module is a Maven plugin enabling using "mvn tuscany:run" for starting a Tuscany runtime
-to run a project as an SCA contribution.
+This module is a Maven plugin that enables starting a Tuscany runtime
+to run SCA contributions.
+
+There are several ways it can be used:
+
+- you can start a Tuscany runtime running an SCA contribution with "mvn tuscany:run" if you 
+  include the Tuscany plugin in the a contributions Maven project plugins definition, eg:
+
+   <project...>
+      ...
+	<build>
+            ...
+		<plugins>
+                  ...
+			<plugin>
+				<groupId>org.apache.tuscany.maven.plugins</groupId>
+				<artifactId>maven-tuscany-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+   </project>
+
+- if you have an SCA contribution file and Maven installed then you can run the contribution
+  without needing to any install of a Tuscany distribtion by using the following command:
+   
+  mvn org.apache.tuscany.maven.plugins:maven-tuscany-plugin:launch -Dcontributions=<filePathToTheContributionFile>
+
+With both of those you can set the domain name used by setting the "domain" system property, for example, the following
+will enable the Tribes distributed domain support and start an SCA domain named "myDomain":
+
+  mvn tuscany:run -Ddomain=tribes:myDomain   
+
+If you don't already have the Tuscany modules installed in your local Maven repository they will be downloaded from the
+remote repository, on subsequent runs you can use the mvn -o option to disable access to the remote repositories.
+ 
+
