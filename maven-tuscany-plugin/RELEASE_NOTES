@@ -9,7 +9,7 @@ to run SCA contributions.
 There are several ways it can be used:
 
 - you can start a Tuscany runtime running an SCA contribution with "mvn tuscany:run" if you 
-  include the Tuscany plugin in the a contributions Maven project plugins definition, eg:
+  include the Tuscany plugin in the contributions Maven project plugins definition, eg:
 
    <project...>
       ...
@@ -25,8 +25,9 @@ There are several ways it can be used:
 	</build>
    </project>
 
-- if you have an SCA contribution file and Maven installed then you can run the contribution
-  without needing to any install of a Tuscany distribtion by using the following command:
+- if you have an SCA contribution file and Maven installed but no Tuscany distribution installed
+  then you can run the contribution by using the following command which will automatically
+  download the Tuscany jars and their dependencies:
    
   mvn org.apache.tuscany.maven.plugins:maven-tuscany-plugin:launch -Dcontributions=<filePathToTheContributionFile>
 
