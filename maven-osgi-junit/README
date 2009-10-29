@@ -1,8 +1,25 @@
-A Maven plugin used by the Tuscany SCA project for OSGi JUnit testing.
-Not exactly clear what its does, there's some discusssion about it at:
+A Maven plugin used by the Tuscany SCA project for OSGi JUnit testing. There's some discusssion about it at:
 http://apache.markmail.org/message/uxt7afrquwc75qxj
 
-To build, from the top maven-bundle-plugin run maven:
+The Tuscany OSGi Junit plugin is derived from maven-surefire-plugin to add the OSGi support. It takes the same set of configurations as maven-surefire-plugin. Here is what it does:
+
+1) Generate two bundles for the main and test classes respectively. The test bundle is a fragment of the main bundle.
+
+For example, the plugin generates the following bundles for sample-calculator-osgi.jar:
+* sample-calculator-osgi-osgi.jar
+* sample-calculator-osgi-osgi-tests.jar
+
+2) Find the EquinoxHost class from tuscany-node-launcher-equinox and create an instance
+3) Start the equinox runtime
+4) Set up the classloader for surefire so that it uses OSGi classloading for the test cases with the test bundle.
+5) Delegate to surefire to run the unit tests
+
+Future improvement:
+As now we use the OSGi framework launch APIs to start an OSGi runtime, it should be ideal to allow either Equinox 
+or Apache Felix as the runtime. The only difference would be a list of properties and we can make them configurable 
+for the plugin to take a property file.
+
+To build, from the top maven-osgi-junit-plugin run maven:
 
 mvn
 
@@ -57,7 +74,7 @@ Call a vote to release the module, eg: http://apache.markmail.org/message/6jnlfx
 
 After a successful vote copy the staging artifacts to the live repository, eg: 
 
-cp -p -v -R  maven-bundle-plugin-1.0/org/apache/tuscany/maven/plugins/ /x1/www/people.apache.org/repo/m2-ibiblio-rsync-repository/org/apache/tuscany/maven/plugins
+cp -p -v -R  maven-osgi-junit-plugin-1.0/org/apache/tuscany/maven/plugins/ /x1/www/people.apache.org/repo/m2-ibiblio-rsync-repository/org/apache/tuscany/maven/plugins
 
 
 
