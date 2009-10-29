@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -279,6 +280,11 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
      * @parameter default-value="tuscany-sca-equinox-manifest.jar"
      */
     private String equinoxManifestJarName = "tuscany-sca-equinox-manifest.jar";
+    
+    /**
+     * @parameter default-value="jar,bundle"
+     */
+    private String artifactTypes;
 
     /**
      * @parameter default-value="true"
@@ -505,9 +511,15 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                     continue;
                 }
 
+                if (artifactTypes == null) {
+                    artifactTypes = "jar,bundle";
+                }
+                String types[] = artifactTypes.trim().split("( |\t|\n|\r|\f|,)+");
+                Set<String> typeSet = new HashSet<String>(Arrays.asList(types));
+
                 // Only consider JAR and WAR files
-                if (!"jar".equals(artifact.getType()) && !"bundle".equals(artifact.getType())
-                    && !"war".equals(artifact.getType())) {
+                if (!typeSet.contains(artifact.getType())) {
+                    log.debug("Artifact with unknown type is skipped: " + artifact);
                     continue;
                 }
 

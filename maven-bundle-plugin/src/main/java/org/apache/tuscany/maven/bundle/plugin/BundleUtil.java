@@ -162,7 +162,7 @@ public final class BundleUtil {
             if (env == null) {
                 env = "JavaSE-1.6";
             }
-            exportedPackages.removeAll(getSystemPackages(env));
+            Set<String> sysPackages = getSystemPackages(env);
 
             // Generate export-package and import-package declarations
             StringBuffer exports = new StringBuffer();
@@ -170,7 +170,7 @@ public final class BundleUtil {
             Set<String> pkgs = new HashSet<String>();
             for (String export : exportedPackages) {
                 String packageName = packageName(export);
-                if (!pkgs.contains(packageName)) {
+                if (!pkgs.contains(packageName) && !sysPackages.contains(packageName)) {
                     // Add corresponding import declaration
                     if (!"META-INF.services".equals(packageName)) {
                         imports.append(export);
@@ -180,7 +180,7 @@ public final class BundleUtil {
                     exports.append(export);
                     exports.append(',');
                 } else {
-                    logger.warning("Duplicate package skipped: " + export);
+                    logger.warning("Duplicate or system package skipped: " + export);
                 }
             }
 
