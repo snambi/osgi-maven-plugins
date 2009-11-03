@@ -1,3 +1,9 @@
+Apache Tuscany Maven Bundle Plugin 1.0.5 Release Notes
+======================================================
+
+- Filter out system packages in export from non-bundle jars such as xerces, xalan or saxon to avoid package conflicts. 
+  This now means Tuscany can be used with Apache Felix
+
 Apache Tuscany Maven Bundle Plugin 1.0.4 Release Notes
 ======================================================
 
