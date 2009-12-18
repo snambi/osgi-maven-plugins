@@ -1,0 +1,223 @@
+User Documentation
+__________________
+
+This module is a Maven plugin which supports the creation of a zip format SCA contribution from
+the contents of a Maven project. An SCA contribution can be deployed to the Tuscany SCA runtime
+and run as an application.
+
+One of the main uses for an SCA zip contribution is that the SCA zip contribution can contain 
+Java jar files within the zip and those jar files are available to the Java classloader of the 
+contribution.  This enables the packaging of application Java classes along with any other Jar files
+which they depend on in one contribution file. As a result the single zip file can hold everything
+that's needed for the SCA application other than the Tuscany runtime itself - in one neat package.
+
+The zip Maven plugin is used by adding a section into <build/> portion of the pom.xml of the Maven 
+project which relates to the maven zip plugin.  It is also necessary for the packaging of the output 
+of the project to be declared as "zip".  Then run Maven in the project.
+
+This zip plugin builds the output of the project as an SCA zip archive and it includes any
+jar files from dependencies declared by the project, where those dependency jar files are placed
+into the zip archive in a folder with the name "lib".
+
+An example pom.xml including the zip plugin statements:
+
+   ...
+   <!-- output packaging format is "zip" -->
+   <packaging>zip</packaging>
+   ... 
+   <build>
+      ...
+      <!-- section referencing the Tuscany zip plugin -->
+      <plugins>
+      ...
+         <plugin>
+            <groupId>org.apache.tuscany.maven.plugins</groupId>
+            <artifactId>maven-zip-plugin</artifactId>
+            <extensions>true</extensions>
+         </plugin>
+      ...
+      </plugins>
+   </build>
+
+(It is probably a good idea to now give an example of a complete POM containing one this stuff so that
+users get the full context - I've attached one here, but it isn't the best example)
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+        <artifactId>tuscany-sca</artifactId>
+        <groupId>org.apache.tuscany.sca</groupId>
+        <version>2.0-SNAPSHOT</version>
+    </parent>
+	<groupId>org.inglenook.test1</groupId>
+	<artifactId>mikestest</artifactId>
+	<packaging>zip</packaging>
+	<version>1.0-SNAPSHOT</version>
+	<name>quickstart</name>
+
+	<dependencies>
+		<!--  TUSCANY DEPENDENCIES -->
+            <dependency>
+               <groupId>org.apache.tuscany.sca</groupId>
+               <artifactId>tuscany-sca-api</artifactId>
+               <version>${tuscany.version}</version>
+               <scope>provided</scope>
+            </dependency>
+
+		<!--  AN EXAMPLE APPLICATION DEPENDENCY TO BE INCLUDED IN ZIP -->
+            <dependency>
+               <groupId>commons-io</groupId>
+               <artifactId>commons-io</artifactId>
+               <version>1.4</version>
+            </dependency>
+
+		<!--  JUNIT DEPENDENCY FOR TESTING -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.2</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+	<build>
+            <defaultGoal>install</defaultGoal>
+            <finalName>${artifactId}</finalName>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>src/main/java</directory>
+				<includes>
+					<include>**</include>
+				</includes>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/java</directory>
+				<includes>
+					<include>**</include>
+				</includes>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</testResource>
+		</testResources>
+		<plugins>
+			<plugin>
+				<inherited>true</inherited>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+					<optimise>true</optimise>
+					<debug>true</debug>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<configuration>
+					<downloadSources>true</downloadSources>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.tuscany.maven.plugins</groupId>
+				<artifactId>maven-zip-plugin</artifactId>
+                        <extensions>true</extensions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.tuscany.maven.plugins</groupId>
+				<artifactId>maven-tuscany-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+	<properties>
+		<tuscany.version>2.0-SNAPSHOT</tuscany.version>
+	</properties>
+	</project>
+
+
+TODOs: 
+- make the "lib/" folder where the dependent jars go configurable
+- make which dependencies get included configurable 
+  (currently its those with compile or runtime scope)
+
+---------------------------------
+Building and releasing the plugin
+---------------------------------
+
+From the top maven-zip-plugin directory run maven:
+
+mvn
+
+or once all the dependencies have been downloaded and a succesful build run use:
+
+mvn clean install -o
+
+So as to avoid the Tuscany SCA project using SNAPSHOT dependencies any changes
+to this maven-zip-plugin module should be released and the Tuscany SCA
+project updated to use the newly released version.
+
+To release this module:
+
+mvn release:prepare
+
+followed by: 
+
+mvn release:perform
+
+That will automatically create an SVN tag from the release, update the version 
+numbers in the pom.xml files in the trunk and tag, and deploy the artifacts to the
+staging repository defined by the <deploy.altRepository> in your Maven settings.xml.
+While running it will prompt you for the names for the tag, release version etc.
+
+In your maven settings.xml file you must have a server defined named "apache.releases",
+and a profile named "release". For example:
+
+  <servers>
+    ...
+    <server>
+      <id>apache.releases</id>
+      <username>antelder</username>
+      <privateKey>\ant\id_dsa</privateKey>
+      <passphrase>xxx</passphrase>
+      <directoryPermissions>775</directoryPermissions>
+      <filePermissions>664</filePermissions>
+    </server>
+  </servers>
+
+  <profiles>
+    ...
+    <profile>
+      <id>release</id>
+      <properties>
+        <gpg.passphrase>...</gpg.passphrase>
+        <deploy.altRepository>apache.releases::default::scp://people.apache.org/home/antelder/public_html/tuscany/maven-zip-plugin-1.0</deploy.altRepository>
+      </properties>
+    </profile>
+  </profiles>
+
+Call a vote to release the module, eg: http://apache.markmail.org/message/6jnlfxbx7uklt5nv
+
+After a successfule vote copy the staging artifacts to the live repository, eg: 
+
+cp -p -v -R  maven-zip-plugin-alpha1/org/apache/tuscany/maven/plugins/ /x1/www/people.apache.org/repo/m2-ibiblio-rsync-repository/org/apache/tuscany/maven/plugins
+
+-----------------------------------------------------------------------------
+This Tuscany module includes much code copied from the Maven WAR plugin 2.0.2 
+written by the Apache Maven team.
+-----------------------------------------------------------------------------
+
+
+
+
