@@ -29,12 +29,12 @@
     <artifactId>maven-zip-plugin</artifactId>
     <packaging>maven-plugin</packaging>
     <name>Apache Tuscany Maven SCA ZIP Plugin</name>
-    <version>alpha1</version>
+    <version>1.0-SNAPSHOT</version>
 
     <scm>
-        <connection>scm:svn:http://svn.apache.org/repos/asf/tuscany/maven-plugins/tags/maven-zip-plugin-alpha1</connection>
-        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/tuscany/maven-plugins/tags/maven-zip-plugin-alpha1</developerConnection>
-        <url>scm:svn:https://svn.apache.org/repos/asf/tuscany/maven-plugins/tags/maven-zip-plugin-alpha1</url>
+        <connection>scm:svn:http://svn.apache.org/repos/asf/tuscany/maven-plugins/trunk/maven-sca-zip-plugin</connection>
+        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/tuscany/maven-plugins/trunk/maven-sca-zip-plugin</developerConnection>
+        <url>http://svn.apache.org/repos/asf/tuscany/</url>
     </scm>
 
     <distributionManagement>
