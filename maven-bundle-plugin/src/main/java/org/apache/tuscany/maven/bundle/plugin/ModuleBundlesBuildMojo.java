@@ -256,6 +256,12 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
     private boolean generateConfig = true;
 
     /**
+     * Generate an aggregated OSGi bundle for each feature
+     * @parameter default-value="false"
+     */
+    private boolean generateAggregatedBundle = false;
+    
+    /**
      * @parameter default-value="true"
      */
     private boolean generateBundleStart = true;
@@ -728,6 +734,12 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                 generateGatewayBundle(serviceProviders);
             }
 
+            if (useDistributionName) {
+                bundleLocations.nameMap.remove(project.getArtifactId());
+                jarNames.nameMap.remove(project.getArtifactId());
+                bundleSymbolicNames.nameMap.remove(project.getArtifactId());
+            }
+            
             // Generate a PDE target
             if (generateTargetPlatform) {
                 generatePDETarget(bundleSymbolicNames, root, log);
@@ -752,6 +764,10 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
 
             if (generateAntScript) {
                 generateANTPath(jarNames, root, log);
+            }
+            
+            if (generateAggregatedBundle) {
+                generateAggregatedBundles(bundleLocations, root, log);
             }
 
         } catch (Exception e) {
@@ -1026,6 +1042,34 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
             // Do not shutdown
             ps.println("osgi.noShutdown=true");
             ps.close();
+        }
+    }
+
+    private void generateAggregatedBundles(ProjectSet bundleLocations, File root, Log log) throws Exception {
+        for (Map.Entry<String, Set<String>> e : bundleLocations.nameMap.entrySet()) {
+            Set<String> locations = new HashSet<String>(e.getValue());
+            String featureName = (useDistributionName ? trim(e.getKey()) : "");
+            File feature = new File(root, "../" + featuresName + "/" + featureName);
+//            String bundleFileName = "tuscany-bundle-" + featureName + ".jar";
+//            if ("".equals(featureName)) {
+//                bundleFileName = "tuscany-bundle.jar";
+//            }
+            String bundleFileName = "tuscany-bundle.jar";
+            File bundleFile = new File(feature, bundleFileName);
+            log.info("Generating aggregated OSGi bundle: " + bundleFile);
+            File[] files = new File[locations.size()];
+            int i = 0;
+            for (String child : locations) {
+                files[i++] = new File(root, child);
+            }
+            String bundleVersion = "2.0.0";
+            String bundleName = "org.apache.tuscany.sca.bundle";
+            
+//            String bundleName = "org.apache.tuscany.sca.bundle." + featureName;
+//            if ("".equals(featureName)) {
+//                bundleName = "org.apache.tuscany.sca.bundle";
+//            }
+            BundleAggregatorMojo.aggregateBundles(log, root, files, bundleFile, bundleName, bundleVersion);
         }
     }
 

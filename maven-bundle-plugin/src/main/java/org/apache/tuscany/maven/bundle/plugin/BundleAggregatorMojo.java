@@ -45,7 +45,6 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.project.MavenProject;
 import org.apache.tuscany.maven.bundle.plugin.HeaderParser.HeaderClause;
 
 /**
@@ -56,15 +55,6 @@ import org.apache.tuscany.maven.bundle.plugin.HeaderParser.HeaderClause;
  * @description Generate an aggregated bundle that contains all the modules and 3rd party jars
  */
 public class BundleAggregatorMojo extends AbstractMojo {
-    /**
-     * The project to create a distribution for.
-     *
-     * @parameter expression="${project}"
-     * @required
-     * @readonly
-     */
-    private MavenProject project;
-
     /**
      * Root directory.
      *
@@ -83,24 +73,24 @@ public class BundleAggregatorMojo extends AbstractMojo {
      * @parameter default-value== "org.apache.tuscany.sca.bundle";
      */
     private String bundleName = "org.apache.tuscany.sca.bundle";
-    
+
     /**
      * @parameter default-value== "2.0.0";
      */
     private String bundleVersion = "2.0.0";
-    
+
     // private static final Logger logger = Logger.getLogger(BundleAggregatorMojo.class.getName());
 
-    public void aggregateBundles(File root, File targetBundleFile) throws Exception {
-        Log log = getLog();
-        if (!root.isDirectory()) {
-            log.warn(root + " is not a directory");
-            return;
-        }
+    public static void aggregateBundles(Log log,
+                                        File root,
+                                        File[] files,
+                                        File targetBundleFile,
+                                        String bundleName,
+                                        String bundleVersion) throws Exception {
         targetBundleFile.getParentFile().mkdirs();
         Set<File> jarFiles = new HashSet<File>();
         List<Manifest> manifests = new ArrayList<Manifest>();
-        for (File child : root.listFiles()) {
+        for (File child : files) {
             try {
                 Manifest manifest = null;
                 if (child.isDirectory()) {
@@ -254,7 +244,13 @@ public class BundleAggregatorMojo extends AbstractMojo {
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
-            aggregateBundles(rootDirectory, targetBundleFile);
+            Log log = getLog();
+            if (!rootDirectory.isDirectory()) {
+                log.warn(rootDirectory + " is not a directory");
+                return;
+            }
+            File[] files = rootDirectory.listFiles();
+            aggregateBundles(log, rootDirectory, files, targetBundleFile, bundleName, bundleVersion);
         } catch (Exception e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }
