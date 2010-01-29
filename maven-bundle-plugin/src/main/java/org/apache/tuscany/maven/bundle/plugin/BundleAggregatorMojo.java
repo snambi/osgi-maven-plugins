@@ -150,7 +150,7 @@ public class BundleAggregatorMojo extends AbstractMojo {
         attributes.putValue("Bundle-SymbolicName", bundleName);
         attributes.putValue("SCA-Version", "1.1");
         attributes.putValue("Bundle-Name", bundleName);
-        attributes.putValue("Bundle-ActivationPolicy", "lazy");
+        // attributes.putValue("Bundle-ActivationPolicy", "lazy");
         for (Manifest mf : manifests) {
             for (Map.Entry<Object, Object> e : mf.getMainAttributes().entrySet()) {
                 Attributes.Name key = (Attributes.Name)e.getKey();

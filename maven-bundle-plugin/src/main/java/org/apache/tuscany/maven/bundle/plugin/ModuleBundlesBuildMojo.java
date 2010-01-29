@@ -734,11 +734,13 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                 generateGatewayBundle(serviceProviders);
             }
 
+            /*
             if (useDistributionName) {
                 bundleLocations.nameMap.remove(project.getArtifactId());
                 jarNames.nameMap.remove(project.getArtifactId());
                 bundleSymbolicNames.nameMap.remove(project.getArtifactId());
             }
+            */
             
             // Generate a PDE target
             if (generateTargetPlatform) {
