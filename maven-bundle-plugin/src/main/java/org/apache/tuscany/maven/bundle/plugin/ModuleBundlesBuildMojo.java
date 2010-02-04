@@ -649,6 +649,10 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                     // Create a bundle directory for a non-OSGi JAR
                     log.info("Adding JAR artifact: " + artifact);
 
+                    // create manifest directory
+                    File file = new File(dir, "META-INF");
+                    file.mkdirs();
+
                     String symbolicName = null;
                     if (customizedMF == null) {
                         String version = BundleUtil.osgiVersion(artifact.getVersion());
@@ -664,6 +668,12 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                                                        null,
                                                        this.eclipseBuddyPolicy,
                                                        this.executionEnvironment);
+
+                        file = new File(file, "MANIFEST.MF");
+                        FileOutputStream fos = new FileOutputStream(file);
+                        write(mf, fos);
+                        fos.close();
+                        log.info("Writing generated manifest for: " + artifact + " to " + file);
                     } else {
                         mf = customizedMF;
                         symbolicName = BundleUtil.getBundleSymbolicName(mf);
@@ -671,14 +681,35 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                             throw new MojoExecutionException("Invalid customized MANIFEST.MF for " + artifact);
                         }
                         setBundleClassPath(mf, artifactFile);
-                    }
-                    File file = new File(dir, "META-INF");
-                    file.mkdirs();
-                    file = new File(file, "MANIFEST.MF");
+                        
+                        // re-find the custom MF file and copy it
+                        // I can't get the  manifest file from the manifest itself
+                        // the Manifest read/write operation seems to be filtering
+                        // out some entries that I've added manually????
+                        File artifactManifest = null;
 
-                    FileOutputStream fos = new FileOutputStream(file);
-                    write(mf, fos);
-                    fos.close();
+                        if (artifactManifests != null) {
+                            for (ArtifactManifest m : artifactManifests) {
+                                if (m.matches(artifact)) {
+                                    artifactManifest = m.getManifestFile();
+                                    break; 
+                                }
+                            }
+                        }
+
+                        file = new File(file, "MANIFEST.MF");
+
+                        if (artifactManifest != null){ 
+                            log.info("Copying: " + artifactManifest + " to " + file);
+                            copyManifest(artifactManifest, file);                         
+                        } else {
+                            FileOutputStream fos = new FileOutputStream(file);
+                            write(mf, fos);
+                            fos.close();
+                            log.info("Writing generated manifest for: " + artifact + " to " + file);
+                        }
+                    }
+
                     copyFile(artifactFile, dir);
                     bundleSymbolicNames.add(artifact, symbolicName);
                     bundleLocations.add(artifact, dir.getName());
@@ -722,6 +753,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                     FileOutputStream fos = new FileOutputStream(file);
                     write(mf, fos);
                     fos.close();
+                    log.info("Written aggregate manifest");
                     bundleSymbolicNames.add(artifact, symbolicName);
                     bundleLocations.add(artifact, dir.getName());
                     if (isServiceProvider(mf)) {
@@ -1155,6 +1187,22 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
         File jarFile = new File(dir, jar.getName());
         FileInputStream in = new FileInputStream(jar);
         FileOutputStream out = new FileOutputStream(jarFile);
+        for (;;) {
+            int len = in.read(buf);
+            if (len > 0) {
+                out.write(buf, 0, len);
+            } else {
+                break;
+            }
+        }
+        in.close();
+        out.close();
+    }
+
+    private static void copyManifest(File mfFrom, File mfTo) throws FileNotFoundException, IOException {
+        byte[] buf = new byte[4096];
+        FileInputStream in = new FileInputStream(mfFrom);
+        FileOutputStream out = new FileOutputStream(mfTo);
         for (;;) {
             int len = in.read(buf);
             if (len > 0) {
