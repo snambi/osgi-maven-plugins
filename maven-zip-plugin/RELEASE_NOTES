@@ -1,3 +1,10 @@
+Apache Tuscany Maven Zip Plugin Alpha2 Release Notes
+====================================================
+
+- Update to correctly support install and deploy phases so zip contributions can be
+  easily deployed to maven repositories 
+
+
 Apache Tuscany Maven Zip Plugin Alpha1 Release Notes
 ====================================================
 
