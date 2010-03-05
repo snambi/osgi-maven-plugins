@@ -1,3 +1,9 @@
+Apache Tuscany Maven Bundle Plugin 1.0.6 Release Notes
+======================================================
+
+- TUSCANY-3457: maven-bundle-plugin filtering manually specified manifests
+- Add new goal so that we can generate a single OSGi bundle from the modules
+
 Apache Tuscany Maven Bundle Plugin 1.0.5 Release Notes
 ======================================================
 
