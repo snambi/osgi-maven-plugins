@@ -105,7 +105,7 @@ public class TuscanyRunMojo extends AbstractMojo {
     protected void addProjectContribution(List<String> cs) throws MojoExecutionException {
         try {
 
-            String contribution = new File(buildDirectory.getParent(), finalName.getName() + packaging).toURI().toURL().toString();
+            String contribution = new File(buildDirectory.getParent(), finalName.getName()).toURI().toURL().toString();
             getLog().info("Project contribution: " + contribution);
             cs.add(contribution);
             
