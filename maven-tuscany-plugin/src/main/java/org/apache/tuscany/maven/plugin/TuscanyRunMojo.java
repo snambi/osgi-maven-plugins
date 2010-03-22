@@ -74,7 +74,7 @@ public class TuscanyRunMojo extends AbstractMojo {
     protected File finalName;
 
     /**
-     * @parameter expression="${domain}" default-value="vm:default"
+     * @parameter expression="${domain}" default-value="tuscany:default"
      */
     private String domain;
     
@@ -105,7 +105,11 @@ public class TuscanyRunMojo extends AbstractMojo {
     protected void addProjectContribution(List<String> cs) throws MojoExecutionException {
         try {
 
-            String contribution = new File(buildDirectory.getParent(), finalName.getName()).toURI().toURL().toString();
+            File contributionFile = new File(buildDirectory.getParent(), finalName.getName());
+            if (!contributionFile.exists()) {
+                contributionFile = new File(buildDirectory.getParent(), finalName.getName() + packaging);
+            }
+            String contribution = contributionFile.toURI().toURL().toString();
             getLog().info("Project contribution: " + contribution);
             cs.add(contribution);
             
