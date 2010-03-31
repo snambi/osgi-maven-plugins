@@ -1055,6 +1055,7 @@ public class ModuleBundlesBuildMojo extends AbstractMojo {
                 int count = 0;
                 for (String f : locations) {
                     if (f.startsWith("osgi")) {
+                        count++;
                         continue;
                     }
                     ps.print("    ");
