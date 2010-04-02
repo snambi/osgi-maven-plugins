@@ -20,6 +20,7 @@
 package org.apache.tuscany.maven.compiler;
 
 import java.io.CharArrayWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -34,7 +35,6 @@ import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
  * @version $Rev$ $Date$
  */
 class FileCompilationUnit implements ICompilationUnit {
-    private final static char fileSeparator = System.getProperty("file.separator").charAt(0);
     private String className;
     private String sourceFile;
 
@@ -47,7 +47,7 @@ class FileCompilationUnit implements ICompilationUnit {
         try {
             InputStreamReader reader = new InputStreamReader(new FileInputStream(sourceFile));
             CharArrayWriter writer = new CharArrayWriter(); 
-            char[] b = new char[2048];
+            char[] b = new char[4096];
             for (;;) {
                 int n = reader.read(b);
                 if (n <= 0) {
@@ -55,6 +55,8 @@ class FileCompilationUnit implements ICompilationUnit {
                 }
                 writer.write(b, 0, n);
             }
+            // Let's close the file handle
+            reader.close();
             return writer.toCharArray();
             
         } catch (FileNotFoundException e) {
@@ -65,7 +67,7 @@ class FileCompilationUnit implements ICompilationUnit {
     }
 
     public char[] getFileName() {
-        return (className.replace('.', fileSeparator) + ".java").toCharArray();
+        return (className.replace('.', File.separatorChar) + ".java").toCharArray();
     }
 
     public char[] getMainTypeName() {
