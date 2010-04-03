@@ -1,0 +1,16 @@
+Apache Tuscany Maven Eclipse Compiler Plugin 1.0.2 Release Notes
+================================================================
+
+Close the file handle after reading the content
+Upgrade to Equinox 3.5
+
+Apache Tuscany Maven Eclipse Compiler Plugin 1.0.1 Release Notes
+================================================================
+
+Update to 3.4.x Eclipse jars
+Minor fix to tolerate - in the maven version id
+
+Apache Tuscany Maven Bundle Plugin 1.0 Release Notes
+====================================================
+
+Initial release
