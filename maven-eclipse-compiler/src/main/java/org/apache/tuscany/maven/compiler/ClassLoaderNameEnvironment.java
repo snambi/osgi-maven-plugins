@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,6 @@ import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
  * @version $Rev$ $Date$
  */
 class ClassLoaderNameEnvironment implements INameEnvironment {
-    private final static char fileSeparator = System.getProperty("file.separator").charAt(0);
     
     private ClassLoader classLoader;
     private List<String> sourceLocations;
@@ -108,7 +108,7 @@ class ClassLoaderNameEnvironment implements INameEnvironment {
         if (sourceFile != null) {
             return sourceFile;
         }
-        String sourceName = className.replace('.', fileSeparator) + ".java";
+        String sourceName = className.replace('.', File.separatorChar) + ".java";
         sourceFile = sourceFileInSourceLocations(sourceName);
         sourceFiles.put(className, sourceFile);
         return sourceFile;
@@ -141,15 +141,8 @@ class ClassLoaderNameEnvironment implements INameEnvironment {
             return false;
         }
         String resourceName = '/' + name.replace('.', '/') + ".class";
-        InputStream is = classLoader.getResourceAsStream(resourceName);
-        if (is == null) {
-            return true;
-        } else {
-            try {
-                is.close();
-            } catch (IOException e) {}
-            return false;
-        }
+        URL url = classLoader.getResource(resourceName);
+        return url == null;
     }
 
     /**
@@ -172,7 +165,7 @@ class ClassLoaderNameEnvironment implements INameEnvironment {
                 return null;
             }
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            byte[] b = new byte[2048];
+            byte[] b = new byte[4096];
             for (;;) {
                 int n = is.read(b);
                 if (n <= 0) {
@@ -180,6 +173,7 @@ class ClassLoaderNameEnvironment implements INameEnvironment {
                 }
                 bos.write(b, 0, n);
             }
+            is.close();
             byte[] classBytes = bos.toByteArray();
             
             ClassFileReader classFileReader = new ClassFileReader(classBytes, className.toCharArray(), true);

@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -159,11 +158,10 @@ public class BundleResolver {
     }
 
     private Properties manifestToProperties(Attributes d) {
-        Iterator iter = d.keySet().iterator();
         Properties result = new Properties();
-        while (iter.hasNext()) {
-            Attributes.Name key = (Attributes.Name)iter.next();
-            result.put(key.toString(), d.get(key));
+        for(Map.Entry<Object, Object> e: d.entrySet()) {
+            Attributes.Name key = (Attributes.Name)e.getKey();
+            result.put(key.toString(), e.getValue());
         }
         return result;
     }
