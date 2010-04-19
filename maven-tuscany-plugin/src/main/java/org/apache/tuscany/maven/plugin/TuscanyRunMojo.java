@@ -22,13 +22,15 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
-import org.apache.tuscany.sca.domain.node.DomainNode;
+import org.apache.maven.project.MavenProject;
+import org.apache.tuscany.sca.node.Node;
+import org.apache.tuscany.sca.node.NodeFactory;
 
 /**
  * Maven Mojo to run the SCA contribution project in Tuscany.
@@ -40,6 +42,15 @@ import org.apache.tuscany.sca.domain.node.DomainNode;
  * @description Runs Tuscany directly from a SCA conribution maven project
  */
 public class TuscanyRunMojo extends AbstractMojo {
+
+    /**
+     * The maven project.
+     *
+     * @parameter expression="${project}"
+     * @required
+     * @readonly
+     */
+    private MavenProject project;
 
     /**
      * The project artifactId.
@@ -74,14 +85,18 @@ public class TuscanyRunMojo extends AbstractMojo {
     protected File finalName;
 
     /**
-     * @parameter expression="${domain}" default-value="tuscany:default"
+     * @parameter expression="${domain}" default-value="default"
      */
     private String domain;
     
     /**
+     * @parameter expression="${config}" default-value="uri:defaultDomain"
+     */
+    private String config;
+    /**
      * @parameter expression="${contributions}" 
      */
-    private String contributions;
+    private String[] contributions;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         getLog().info("Starting Tuscany Runtime...");
@@ -89,17 +104,39 @@ public class TuscanyRunMojo extends AbstractMojo {
         List<String> contributionList = new ArrayList<String>();
 
         addProjectContribution(contributionList);
+
+        addAdditionalContributions(contributionList);
+
+        Node node = NodeFactory.newInstance(config).createNode((String)null, contributionList.toArray(new String[contributionList.size()])).start();
         
+        waitForShutdown(node, getLog());
+    }
+
+    private void addAdditionalContributions(List<String> contributionList) throws MojoExecutionException {
         if (contributions != null) {
-            StringTokenizer st = new StringTokenizer(contributions, ",");
-            while (st.hasMoreTokens()) {
-                contributionList.add(st.nextToken());
+            for (String s : contributions) {
+                if (new File(s).exists()) {
+                    contributionList.add(s);
+                } else {
+                    boolean found = false;
+                    for (Object o : project.getDependencyArtifacts()) {
+                        Artifact a = (Artifact) o;
+                        if (a.getId().startsWith(s)) {
+                            try {
+                                contributionList.add(a.getFile().toURI().toURL().toString());
+                            } catch (MalformedURLException e) {
+                                throw new MojoExecutionException("", e);
+                            }
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        throw new IllegalArgumentException("Contribution not found as file or dependency: " + s);
+                    }
+                }
             }
         }
-
-        DomainNode domainNode = new DomainNode(domain, contributionList.toArray(new String[contributionList.size()]));
-
-        waitForShutdown(domainNode, getLog());
     }
 
     protected void addProjectContribution(List<String> cs) throws MojoExecutionException {
@@ -118,7 +155,7 @@ public class TuscanyRunMojo extends AbstractMojo {
         }
     }
 
-    protected void waitForShutdown(DomainNode node, Log log) {
+    protected void waitForShutdown(Node node, Log log) {
         Runtime.getRuntime().addShutdownHook(new ShutdownThread(node, log));
         synchronized (this) {
             try {
@@ -132,10 +169,10 @@ public class TuscanyRunMojo extends AbstractMojo {
 
     protected static class ShutdownThread extends Thread {
 
-        private DomainNode node;
+        private Node node;
         private Log log;
 
-        public ShutdownThread(DomainNode node, Log log) {
+        public ShutdownThread(Node node, Log log) {
             super();
             this.node = node;
             this.log = log;
