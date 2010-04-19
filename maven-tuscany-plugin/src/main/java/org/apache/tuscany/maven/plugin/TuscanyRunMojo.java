@@ -85,11 +85,6 @@ public class TuscanyRunMojo extends AbstractMojo {
     protected File finalName;
 
     /**
-     * @parameter expression="${domain}" default-value="default"
-     */
-    private String domain;
-    
-    /**
      * @parameter expression="${config}" default-value="uri:defaultDomain"
      */
     private String config;
