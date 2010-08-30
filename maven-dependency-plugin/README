@@ -1,0 +1,34 @@
+The Tuscany maven-dependency-plugin checks and reports duplicate classes among the list of jars within the maven dependency graph or under a directory on the file system. 
+
+The maven conflict resolution only handles different versions of the same artifact (same groupId and same artifactId). In reality, there are artifacts with different groupId and/or artifactId containing duplicate classes which can be the same or different. These classes can lead to the classpath hell issue where conflicting classes are on the same classpath.
+
+There is a similar effort in the official maven dependency plugin project to add such function into the analyze goal.
+ 
+http://jira.codehaus.org/browse/MDEP-275
+
+The Tuscany version has a few advantages over the prototype above:
+* It groups duplicate classes under the list of artifacts
+* It goes one step further to check the size and CRC of the class file and marks the different cases in the report (potentially we can use BCEL to further compare the two classes):
+  * X: the duplicate classes have different size (most likely different versions)
+  * ?: the duplicate classes have the same size but different CRC (probably the same version but were built separately)
+  *  : the duplicate classes have the same size and CRC (most likely the same version).
+
+To use the plugin, you can add the following section to the pom.xml:
+
+            <plugin>
+                <groupId>org.apache.tuscany.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+                <configuration>
+                    <verbose>true</verbose>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>check-class-conflicts</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check-class-conflicts</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>

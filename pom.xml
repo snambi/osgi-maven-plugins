@@ -98,6 +98,7 @@
 
     <modules>
         <module>maven-bundle-plugin</module>
+        <module>maven-dependency-plugin</module>
         <module>maven-eclipse-compiler</module>
         <!--module>maven-java2wsdl-plugin</module-->
         <module>maven-osgi-junit</module>
