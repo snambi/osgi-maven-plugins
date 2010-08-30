@@ -17,7 +17,7 @@ To use the plugin, you can add the following section to the pom.xml:
 
             <plugin>
                 <groupId>org.apache.tuscany.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
+                <artifactId>maven-dependency-classes-plugin</artifactId>
                 <version>1.0.0-SNAPSHOT</version>
                 <configuration>
                     <verbose>true</verbose>
