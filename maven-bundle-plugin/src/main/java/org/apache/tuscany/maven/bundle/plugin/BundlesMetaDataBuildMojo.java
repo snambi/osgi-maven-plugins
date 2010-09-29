@@ -305,6 +305,11 @@ public class BundlesMetaDataBuildMojo extends AbstractMojo {
      * @parameter default-value="true"
      */
     private boolean generateAntScript = true;
+    
+    /**
+     * @parameter default-value="true"
+     */
+    private boolean generateWhichJars = true;
 
     /**
      * @parameter
@@ -655,7 +660,7 @@ public class BundlesMetaDataBuildMojo extends AbstractMojo {
                             copyFile(artifactFile, root);
                         }
                         bundleSymbolicNames.add(artifact, bundleName);
-                        bundleLocations.add(artifact, artifactFile.getName());
+                        bundleLocations.add(artifact, artifactFile.getName());                      
                         jarNames.add(artifact, artifactFile.getName());
                         if (isServiceProvider(mf)) {
                             serviceProviders.add(artifact, bundleName);
@@ -680,7 +685,7 @@ public class BundlesMetaDataBuildMojo extends AbstractMojo {
                         }
                         bundleSymbolicNames.add(artifact, bundleName);
                         bundleLocations.add(artifact, dir.getName());
-                        jarNames.add(artifact, dirName + "/" + artifactFile.getName());
+                        jarNames.add(artifact, dirName + "/" + artifactFile.getName());                        
                         if (isServiceProvider(mf)) {
                             serviceProviders.add(artifact, bundleName);
                         }
@@ -890,6 +895,10 @@ public class BundlesMetaDataBuildMojo extends AbstractMojo {
                 generateANTPath(jarNames, root, log);
             }
             
+            if (generateWhichJars) {
+                generateWhichJars(jarNames, root, log);
+            }            
+            
             if (generateAggregatedBundle) {
                 generateAggregatedBundles(bundleLocations, root, log);
             }
@@ -1035,12 +1044,10 @@ public class BundlesMetaDataBuildMojo extends AbstractMojo {
             ps.println(ASL_HEADER);
             String name = trim(e.getKey());
             ps.println("<project name=\"" + name + "\">");
-            //ps.println("  <property name=\"tuscany.distro\" value=\"" + name + "\"/>");
-            //ps.println("  <property name=\"tuscany.manifest\" value=\"" + new File(feature, manifestJarName)
-            //    .getCanonicalPath()
-            //    + "\"/>");
+            ps.println("  <property name=\"tuscany.manifest\" value=\"" + new File(feature, manifestJarName).getCanonicalPath() + "\"/>");
+            ps.println("  <dirname property=\"" + name + ".basedir\" file=\"${ant.file." + name + "}\"/>");
             ps.println("  <path id=\"" + name + ".path" + "\">");
-            ps.println("    <fileset dir=\"..\\..\\modules\">");
+            ps.println("    <fileset dir=\"${" + name + ".basedir}../../../modules\">");
             for (String jar : jars) {
                 ps.println("      <include name=\"" + jar + "\"/>");
             }
@@ -1049,14 +1056,36 @@ public class BundlesMetaDataBuildMojo extends AbstractMojo {
             ps.println("</project>");
         }
     }
+    
+    private void generateWhichJars(ProjectSet jarNames, File root, Log log) throws FileNotFoundException, IOException {
+        for (Map.Entry<String, Set<String>> e : jarNames.nameMap.entrySet()) {
+            Set<String> jars = e.getValue();
+            File feature = new File(root, "../" + featuresName + "/" + (useDistributionName ? trim(e.getKey()) : ""));
+            feature.mkdirs();
+            File whichJarsPath = new File(feature, "which-jars");
+            log.info("Generating Which Jars: " + whichJarsPath.getCanonicalPath());
+            FileOutputStream fos = new FileOutputStream(whichJarsPath);
+            PrintStream ps = new PrintStream(fos);
+
+            ps.println(ASL_HEADER);
+            String name = trim(e.getKey());
+            ps.println("Jars required to enable extension: " + name);
+            ps.println("");
+            for (String jar : jars) {
+                ps.println(jar);
+            }
+        }
+    }
 
     private void generateManifestJar(ProjectSet jarNames, File root, Log log) throws FileNotFoundException, IOException {
         for (Map.Entry<String, Set<String>> e : jarNames.nameMap.entrySet()) {
             MavenProject pom = jarNames.getProject(e.getKey());
             Set<String> jars = e.getValue();
+            String name = trim(e.getKey());
             File feature = new File(root, "../" + featuresName + "/" + (useDistributionName ? trim(e.getKey()) : ""));
             feature.mkdirs();
-            File mfJar = new File(feature, manifestJarName);
+            String manifestName = name + "-manifest.jar";
+            File mfJar = new File(feature, manifestName);
             log.info("Generating manifest jar: " + mfJar.getCanonicalPath());
             FileOutputStream fos = new FileOutputStream(mfJar);
             Manifest mf = new Manifest();
