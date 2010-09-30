@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -391,13 +392,20 @@ public class BundlesMetaDataBuildMojo extends AbstractMojo {
                     artifact.getArtifactId().equals(p.getArtifactId())){
                     a = p.getArtifact();
                 }
-                if (a != null) {
-                    Set<String> names = nameMap.get(p.getArtifactId());
-                    if (names == null) {
-                        names = new HashSet<String>();
-                        nameMap.put(p.getArtifactId(), names);
+                if (a != null) {                   
+                    if (a.getScope() != null &&
+                        (a.getScope().equals("provided") ||
+                         a.getScope().equals("test") ||
+                         a.getScope().equals("system"))){
+                        // ignore the artifact
+                    } else {
+                        Set<String> names = nameMap.get(p.getArtifactId());
+                        if (names == null) {
+                            names = new TreeSet<String>();
+                            nameMap.put(p.getArtifactId(), names);
+                        }
+                        names.add(name);
                     }
-                    names.add(name);
                 }
             }
             artifactToNameMap.put(key, name);
