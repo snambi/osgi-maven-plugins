@@ -595,7 +595,7 @@ public final class BundleUtil {
                 result.put(Constants.OSGI_JAVA_PROFILE_NAME, "OSGi/Minimum-1.1");
         return result;
     }
-
+/* doesn't work with Equinox 3.5.0
     public static void loadVMProfile(Properties properties) {
         Properties profileProps = findVMProfile(properties);
         String systemExports = properties.getProperty(Constants.OSGI_FRAMEWORK_SYSTEM_PACKAGES);
@@ -625,6 +625,7 @@ public final class BundleUtil {
                 properties.put(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, ee);
         }
     }
+*/
 
     private static URL getNextBestProfile(String javaEdition, Version javaVersion) {
         if (javaVersion == null || (javaEdition != J2SE && javaEdition != JAVASE))
