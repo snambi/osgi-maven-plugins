@@ -107,7 +107,8 @@ public class ClassConflictsDetectorMojo extends AbstractMojo {
                 continue;
             }
             if (artifact.isResolved()) {
-                if ("jar".equals(artifact.getType())) {
+                //Check if artifact is a jar & actually points to a file
+                if ("jar".equals(artifact.getType()) && (artifact.getFile() != null && artifact.getFile().isFile())) {
                     files.add(artifact.getFile());
                 }
             }
