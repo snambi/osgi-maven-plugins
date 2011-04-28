@@ -52,6 +52,19 @@
     </distributionManagement>
 
     <repositories>
+    
+    	<!--  -->
+    	<repository>
+    		<id>ebay.eclipse.osgi</id>
+    		<url>http://r2d2:8081/nexus/content/repositories/osgitools/</url>
+    		<releases>
+    			<enabled>true</enabled>
+    		</releases>
+    		<snapshots>
+    			<enabled>false</enabled>
+    		</snapshots>
+    	</repository>
+       
        <!-- Apache SNAPSHOT repository for unreleased artifacts -->
        <repository>
             <id>apache.snapshots</id>
@@ -204,7 +217,20 @@
             <artifactId>plexus-compiler-api</artifactId>
             <version>1.5.1</version>
         </dependency>
+        
+        <dependency>
+        	<groupId>org.eclipse.jdt</groupId>
+        	<artifactId>core</artifactId>
+        	<version>3.6.2.v_A76_R36x</version>
+        </dependency>
+        
+        <dependency>
+        	<groupId>org.eclipse</groupId>
+        	<artifactId>osgi</artifactId>
+        	<version>3.6.2.R36x_v20110210</version>
+        </dependency>
 
+		<!-- 
         <dependency>
             <groupId>org.eclipse.jdt</groupId>
             <artifactId>core</artifactId>
@@ -228,13 +254,16 @@
                 </exclusion>
             </exclusions>
         </dependency>
+         -->
 
+	<!-- 
         <dependency>
             <groupId>org.eclipse</groupId>
             <artifactId>osgi</artifactId>
             <version>3.5.0-v20090520</version>
             <scope>compile</scope>
         </dependency>
+         -->
 
     </dependencies>
 
