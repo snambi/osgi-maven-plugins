@@ -98,6 +98,7 @@
 
     <modules>
         <module>maven-bundle-plugin</module>
+        <module>manifest-validator-plugin</module>
         <module>maven-dependency-plugin</module>
         <module>maven-eclipse-compiler</module>
         <!--module>maven-java2wsdl-plugin</module-->
