@@ -140,8 +140,7 @@ public class BundleResolver {
             throw new IllegalArgumentException("bundleLocation not found: " + bundleLocation);
         Dictionary manifest = loadManifestAttributes(bundleLocation);
         if (manifest == null) {
-            // throw new BundleException("manifest not found in " + bundleLocation);
-            return null;
+            throw new BundleException("manifest not found in " + bundleLocation);
         }
         return addBundle(manifest, bundleLocation, override);
     }

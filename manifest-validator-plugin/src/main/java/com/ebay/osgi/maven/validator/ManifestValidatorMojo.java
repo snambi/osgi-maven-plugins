@@ -68,6 +68,8 @@ public class ManifestValidatorMojo extends AbstractMojo{
 	    try {
 			
 	    	List<String> classpathElements = (List<String>) project.getCompileClasspathElements();
+	    	
+	    	this.project.getBuild().getOutputDirectory();
 			
 	    	for( String classpath : classpathElements){
 	            try {
@@ -76,7 +78,9 @@ public class ManifestValidatorMojo extends AbstractMojo{
 	                	getLog().info("Bundle: " + cp.getAbsolutePath());
 	                	
 	                	// check whether the output directory is same as classpath
-	                	if( classpath.equals(outputDirectory.getAbsolutePath())){
+	                	if( manifestLocation != null  && 
+	                				classpath.equals(this.project.getBuild().getOutputDirectory()) && 
+	                				manifestLocation.isFile() ){
 	                		bundleresolver.addBundle(manifestLocation, cp);
 	                	}else{
 	                		bundleresolver.addBundle(cp);
