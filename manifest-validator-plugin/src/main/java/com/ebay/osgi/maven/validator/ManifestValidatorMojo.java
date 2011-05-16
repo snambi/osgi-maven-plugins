@@ -46,6 +46,11 @@ public class ManifestValidatorMojo extends AbstractMojo{
     private File outputDirectory;
     
     /**
+     * @parameter 
+     */
+    private File manifestLocation;
+    
+    /**
      * The maven project.
      *
      * @parameter expression="${project}"
