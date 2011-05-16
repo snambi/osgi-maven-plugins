@@ -130,6 +130,10 @@ public class BundleResolver {
     public BundleDescription addBundle(File bundleLocation) throws BundleException {
         return addBundle(bundleLocation, false);
     }
+    
+    public BundleDescription addBundle(File bundleLocation, File manifestLocation ) throws BundleException {
+        return addBundle(manifestLocation, bundleLocation, false);
+    }
 
     public BundleDescription addBundle(File bundleLocation, boolean override) throws BundleException {
         if (bundleLocation == null || !bundleLocation.exists())

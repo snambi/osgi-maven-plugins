@@ -74,7 +74,13 @@ public class ManifestValidatorMojo extends AbstractMojo{
 	                File cp = new File(classpath);
 	                if (cp.exists()) {
 	                	getLog().info("Bundle: " + cp.getAbsolutePath());
-	                    bundleresolver.addBundle(cp);
+	                	
+	                	// check whether the output directory is same as classpath
+	                	if( classpath.equals(outputDirectory.getAbsolutePath())){
+	                		bundleresolver.addBundle(manifestLocation, cp);
+	                	}else{
+	                		bundleresolver.addBundle(cp);
+	                	}
 	                }
 	            } catch (BundleException e) {
 	                getLog().error(e.getMessage(), e);
