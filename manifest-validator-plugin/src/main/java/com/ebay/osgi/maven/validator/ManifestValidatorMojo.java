@@ -81,8 +81,8 @@ public class ManifestValidatorMojo extends AbstractMojo{
 	                	// check whether the output directory is same as classpath
 	                	if( manifestLocation != null  && 
 	                				classpath.equals(this.project.getBuild().getOutputDirectory()) && 
-	                				manifestLocation.isFile() ){
-	                		bundleresolver.addBundle(manifestLocation, cp);
+	                				manifestLocation.isDirectory() ){
+	                		bundleresolver.addBundle( cp, manifestLocation);
 	                	}else{
 	                		bundleresolver.addBundle(cp);
 	                	}
