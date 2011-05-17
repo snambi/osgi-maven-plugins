@@ -91,7 +91,7 @@ public class ManifestValidatorMojo extends AbstractMojo{
 	                getLog().error(e.getMessage(), e);
 	            } catch (ManifestNotFoundException e) {
 					getLog().error( e.getMessage(), e);
-					break;
+					throw new MojoExecutionException(e.getMessage(), e);
 				}
 	    	}
 	    	
