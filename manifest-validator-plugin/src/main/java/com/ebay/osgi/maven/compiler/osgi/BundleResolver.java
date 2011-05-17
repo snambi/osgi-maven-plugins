@@ -127,7 +127,7 @@ public class BundleResolver {
         return ++id;
     }
 
-    public BundleDescription addBundle(File bundleLocation) throws BundleException {
+    public BundleDescription addBundle(File bundleLocation) throws BundleException, ManifestNotFoundException {
         return addBundle(bundleLocation, false);
     }
     
@@ -135,12 +135,12 @@ public class BundleResolver {
         return addBundle(manifestLocation, bundleLocation, false);
     }
 
-    public BundleDescription addBundle(File bundleLocation, boolean override) throws BundleException {
+    public BundleDescription addBundle(File bundleLocation, boolean override) throws BundleException, ManifestNotFoundException {
         if (bundleLocation == null || !bundleLocation.exists())
             throw new IllegalArgumentException("bundleLocation not found: " + bundleLocation);
         Dictionary manifest = loadManifestAttributes(bundleLocation);
         if (manifest == null) {
-            throw new BundleException("manifest not found in " + bundleLocation);
+            throw new ManifestNotFoundException("manifest not found in " + bundleLocation);
         }
         return addBundle(manifest, bundleLocation, override);
     }

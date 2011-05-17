@@ -28,6 +28,7 @@ import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.BundleException;
 
 import com.ebay.osgi.maven.compiler.osgi.BundleResolver;
+import com.ebay.osgi.maven.compiler.osgi.ManifestNotFoundException;
 
 /**
  * Goal which touches a timestamp file.
@@ -88,7 +89,10 @@ public class ManifestValidatorMojo extends AbstractMojo{
 	                }
 	            } catch (BundleException e) {
 	                getLog().error(e.getMessage(), e);
-	            }
+	            } catch (ManifestNotFoundException e) {
+					getLog().error( e.getMessage(), e);
+					break;
+				}
 	    	}
 	    	
 	    	
